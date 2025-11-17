@@ -1,0 +1,45 @@
+<ETHERNETKRL>
+    <CONFIGURATION>
+        <EXTERNAL>
+            <IP>172.31.1.230</IP>
+            <PORT>54601</PORT>
+        </EXTERNAL>
+        <INTERNAL>
+            <PROTOCOL>TCP</PROTOCOL>
+            <ALIVE Set_Flag="101"/>
+            <BUFFERING Limit="16"/>
+        </INTERNAL>
+    </CONFIGURATION>
+    <SEND>
+        <XML>
+            <ELEMENT Tag="ActualPose/X" Type="REAL"/>
+            <ELEMENT Tag="ActualPose/Y" Type="REAL"/>
+            <ELEMENT Tag="ActualPose/Z" Type="REAL"/>
+            <ELEMENT Tag="ActualPose/A" Type="REAL"/>
+            <ELEMENT Tag="ActualPose/B" Type="REAL"/>
+            <ELEMENT Tag="ActualPose/C" Type="REAL"/>
+        </XML>
+    </SEND>
+    <RECEIVE>
+        <XML>
+            <!-- Command -->
+            <ELEMENT Tag="RobotCommand/@Id" Type="INT"/>
+            <!-- Type: 1=parameter(global), 2=Move, 3= TouchUp -->
+            <ELEMENT Tag="RobotCommand/@Type" Type="INT"/> 
+            
+            <!-- Mode: 1=Joint, 2=Cartesian-Ptp, 3=Cartesian-Lin, 6=Cartesian-Circ (4=Teached-Ptp, 5=Teached-Lin) -->
+            <ELEMENT Tag="RobotCommand/Move/@Mode" Type="INT"/> 
+            <ELEMENT Tag="RobotCommand/Move/@BaseIndex" Type="INT"/>
+            <ELEMENT Tag="RobotCommand/Move/@ToolIndex" Type="INT"/>
+            <ELEMENT Tag="RobotCommand/Move/@Velocity" Type="REAL"/>                     
+            
+            <!--Targetpose-->
+            <ELEMENT Tag="RobotCommand/Move/TargetPose/@X" Type="REAL"/>
+            <ELEMENT Tag="RobotCommand/Move/TargetPose/@Y" Type="REAL"/>
+            <ELEMENT Tag="RobotCommand/Move/TargetPose/@Z" Type="REAL"/>
+            <ELEMENT Tag="RobotCommand/Move/TargetPose/@A" Type="REAL"/>
+            <ELEMENT Tag="RobotCommand/Move/TargetPose/@B" Type="REAL"/>
+            <ELEMENT Tag="RobotCommand/Move/TargetPose/@C" Type="REAL"/>
+        </XML>
+    </RECEIVE>
+</ETHERNETKRL>
