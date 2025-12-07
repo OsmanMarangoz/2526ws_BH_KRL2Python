@@ -12,7 +12,7 @@ class TcpTransport:
         if self.connected:
             return
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.settimeout(self.timeout)
+        # self.socket.settimeout(self.timeout)
         self.socket.connect((self.ip, self.port))
         self.connected = True
         print(f"Connected to {self.ip}:{self.port}")

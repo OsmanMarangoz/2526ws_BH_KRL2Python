@@ -9,6 +9,7 @@ class MetaController:
         value = max(0.0, min(1.0, value))
         xml = self._build_xml(value, abort=0)
         self.transport.send(xml)
+        print(f" OVERRIDE: {value*100:.0f}%")
 
     def emergency_stop(self):
         xml = self._build_xml(0.0, abort=1)

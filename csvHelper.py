@@ -4,13 +4,13 @@ from point import Point6D
 
 CSV_HEADER = ["name", "x", "y", "z", "a", "b", "c"]
 
-def init_points_csv(filename: str):
+def init_csv(filename: str):
     if not Path(filename).exists():
         with open(filename, "w", newline="") as f:
             csv.writer(f).writerow(CSV_HEADER)
 
 def save_point_csv(filename: str, point: Point6D, overwrite=True):
-    init_points_csv(filename)
+    init_csv(filename)
 
     rows = []
     found = False
