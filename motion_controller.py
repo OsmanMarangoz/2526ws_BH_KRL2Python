@@ -5,14 +5,16 @@ import time
 
 
 class MotionController:
-    def __init__(self, transport):
-        self.transport = transport
+    def __init__(self, motionTransport):
+        self.motionTransport = motionTransport
+        self.lastMotionPacket: bytes | None = None
         self.cmd_counter = 1
 
     def get_current_Point6D(self, name: str) -> Point6D:
 
         try:
-            xml_bytes: bytes = self.transport.receive(800)
+            # xml_bytes: bytes = self.motionTransport.receive(800)
+            xml_bytes: bytes = self.lastMotionPacket
             print("RAW XML BYTES:", xml_bytes)
             # parse xml string
 
@@ -49,25 +51,21 @@ class MotionController:
         return point
 
     def receive_motion_loop(self):
-        """
-        Thread that continuously receives actual robot position
-        and prints it to the console.
-        """
-        while self.transport.connected:
+        while self.motionTransport.connected:
             try:
-                data = self.transport.socket.recv(4096)
+                data = self.motionTransport.socket.recv(4096)
                 if not data:
-                    print("Connection lost")
+                    print("Motion connection lost")
                     break
 
-                #print("\nCurrent robot position:")
-                #print(data)
+                self.lastMotionPacket = data
+
+            except self.motionTransport.socket.timeout:
+                continue
 
             except Exception as e:
-                print("Receive error:", e)
+                print("Motion receive error:", e)
                 break
-
-            time.sleep(0.1)
 
     def to_xml(self, cmd_id: int, point: Point6D, cmd_type: int = 1, mode: int = 1, 
         vel: float = 0.5, acc: float = 0.5, base: int = 0, tool: int = 0, blending: float = 0.0,
@@ -114,7 +112,7 @@ class MotionController:
             blending=blending
         )
 
-        self.transport.send(xml_bytes)
+        self.motionTransport.send(xml_bytes)
         print(f"Move sent:\n{xml_bytes.decode()}")
         self.cmd_counter += 1
 
