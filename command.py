@@ -1,4 +1,4 @@
-# import keyboard
+import keyboard
 from point import Point6D
 from robot import Robot
 from csvHelper import load_point_csv,save_point_csv
@@ -36,11 +36,10 @@ class Command:
         print("Connection lost")
 
     def safetyLoop(self):
-        # keyboard.add_hotkey("F9", lambda: self.robot.emergency_stop())
-        # keyboard.add_hotkey("F10", lambda: self.robot.reset_abort())
-        # keyboard.add_hotkey("+", lambda: self.robot.set_override(self.override + 0.1))
-        # nkeyboard.add_hotkey("-", lambda: self.robot.set_override(self.override - 0.1))
-        print("tbd - install keyboard")
+        keyboard.add_hotkey(",", lambda: self.robot.emergency_stop())
+        keyboard.add_hotkey("e", lambda: self.robot.reset_abort())
+        keyboard.add_hotkey("+", lambda: self.setOverride(self.override + 0.1))
+        keyboard.add_hotkey("-", lambda: self.setOverride(self.override - 0.1))
 # -----------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------- user input ---------------------------------------------------
@@ -73,13 +72,22 @@ class Command:
             return userInput
 # -----------------------------------------------------------------------------------------------------------
 
+# --------------------------------------------- override ----------------------------------------------------
+    def setOverride(self, value: float):
+        value = max(0.0, min(1.0, value))
+        self.override = value
+        self.robot.set_override(value)
+
+# -----------------------------------------------------------------------------------------------------------
+
 # --------------------------------------------- functions ---------------------------------------------------
     def changeMode(self):
         print("========== MODE SELECTION ==========")
-        print(" For MOVE       please press 1")
-        print(" For GRIP       please press 2")
-        print(" For SAVEPOINT  please press 3")
-        print(" For SETTINGS   please press 4")
+        print(" MOVE       please press 1")
+        print(" GRIP       please press 2")
+        print(" SAVEPOINT  please press 3")
+        print(" SETTINGS   please press 4")
+        print(" DISCONNECT please press 8")
         print("====================================")
 
         userInput = self.getUserIntegerInput()
@@ -93,6 +101,9 @@ class Command:
                 self.commandMode = CommandMode.SAVEPOINT
             case 4:
                 self.commandMode = CommandMode.SETTINGS
+            case 8:
+                print("Disconnecting..")
+                self.robot.disconnect()
             case _:
                 print(" ERROR: Only numbers from 1 to 4 are allowed!")
                 self.commandMode = CommandMode.CHANGEMODE
