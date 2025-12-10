@@ -1,3 +1,4 @@
+# threading
 import threading
 import time
 
@@ -10,34 +11,43 @@ from command import Command
 
 if __name__ == "__main__":
 
+    
     KUKA_IP = "10.181.116.41"
-    KUKA_PORT = 54602
+    KUKA_PORT_META = 54601
+    KUKA_PORT_MOTION = 54602
 
-    kuka = Robot(KUKA_IP, KUKA_PORT)
+    kuka = Robot(KUKA_IP, KUKA_PORT_META, KUKA_PORT_MOTION)
     kuka.connect()
 
-    command = Command()
+    command = Command(kuka)
     
     if kuka.motion_transport.connected:
         # Thread for receiving actual position
-        recv_thread = threading.Thread(
-            target=kuka.receive_loop,
+        recv_motion_thread = threading.Thread(
+            target=kuka.receive_motion_loop,
             daemon=True
         )
-        recv_thread.start()
+        recv_motion_thread.start()
+
+        recv_meta_thread = threading.Thread(
+            target=kuka.receive_meta_loop,
+            daemon=True
+        )
+        recv_meta_thread.start()
 
         # Thread for console input
-        cmd_thread = threading.Thread(
+        cmd_motion_thread = threading.Thread(
             target=command.loop,
             daemon=True
         )
-        cmd_thread.start()
+        cmd_motion_thread.start()
 
-        safety_thread = threading.Thread(
+        # Thread for safety
+        cmd_safety_thread = threading.Thread(
             target=command.safetyLoop,
             daemon=True
         )
-        safety_thread.start()
+        # cmd_safety_thread.start()
 
         # Keep main thread alive
         while kuka.motion_transport.connected:

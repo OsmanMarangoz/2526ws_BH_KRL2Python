@@ -1,4 +1,4 @@
-import keyboard
+# import keyboard
 from point import Point6D
 from robot import Robot
 from csvHelper import load_point_csv,save_point_csv
@@ -27,6 +27,8 @@ class Command:
                     self.changeMode()
                 case CommandMode.MOVE:
                     self.move()
+                case CommandMode.GRIP:
+                    self.grip()
                 case CommandMode.SAVEPOINT:
                     self.savePoint()
                 case CommandMode.SETTINGS:
@@ -34,10 +36,11 @@ class Command:
         print("Connection lost")
 
     def safetyLoop(self):
-        keyboard.add_hotkey("F9", lambda: self.robot.emergency_stop())
-        keyboard.add_hotkey("F10", lambda: self.robot.reset_abort())
-        keyboard.add_hotkey("+", lambda: self.robot.set_override(self.override + 0.1))
-        keyboard.add_hotkey("-", lambda: self.robot.set_override(self.override - 0.1))
+        # keyboard.add_hotkey("F9", lambda: self.robot.emergency_stop())
+        # keyboard.add_hotkey("F10", lambda: self.robot.reset_abort())
+        # keyboard.add_hotkey("+", lambda: self.robot.set_override(self.override + 0.1))
+        # nkeyboard.add_hotkey("-", lambda: self.robot.set_override(self.override - 0.1))
+        print("tbd - install keyboard")
 # -----------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------- user input ---------------------------------------------------
@@ -117,7 +120,7 @@ class Command:
 
             case 3:
                 print(" LIN selected")
-                # TODO: self.lin()
+                self.lin()
 
             case 4:
                 print(" CIRC selected")
@@ -125,10 +128,13 @@ class Command:
 
             case 9:
                 print(" Change Mode selected")
-                return  # back to command.loop → CHANGEMODE
+                self.changeMode()
 
             case _:
                 print(" ERROR: Invalid selection!")
+
+    def grip(self):
+        print("...")
 
     def savePoint(self):
         print()
@@ -151,7 +157,8 @@ class Command:
 
             case 9:
                 print(" Change Mode selected")
-                return  # back to command.loop → CHANGEMODE
+                self.changeMode()
+
 
             case _:
                 print(" ERROR: Invalid selection!")
@@ -182,7 +189,7 @@ class Command:
                     self.setBlending()
                 case 9:
                     print(" Change Mode selected")
-                    return
+                    self.changeMode()
                 case _:
                     print(" ERROR: Invalid selection!")
 # -----------------------------------------------------------------------------------------------------------
@@ -368,15 +375,14 @@ class Command:
     def manualSavePoint(self):
         print()
         print("========== MANUAL SAVE POINT ==========")
-        
-        point_name = self.getUserStringInput(" Enter name for the point: ")
+        print(" Enter name for the point: ")
+        point_name = self.getUserStringInput()
         if not point_name:
             print(" ERROR: Point name must not be empty!")
             return
 
-        coords_input = self.getUserStringInput(
-            " Enter coordinates x y z a b c (space separated): "
-        )
+        print(" Enter coordinates x y z a b c (space separated): ")
+        coords_input = self.getUserStringInput()
         parts = coords_input.strip().split()
         if len(parts) != 6:
             print(" ERROR: You must enter exactly 6 numeric values!")

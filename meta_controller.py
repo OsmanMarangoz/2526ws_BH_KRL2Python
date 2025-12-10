@@ -1,9 +1,28 @@
 import xml.etree.ElementTree as ET
 from point import Point6D
+import time
 
 class MetaController:
     def __init__(self, transport):
         self.transport = transport
+
+    def receive_meta_loop(self):
+        while self.transport.connected:
+            try:
+                data = self.transport.socket.recv(4096)
+                if not data:
+                    print("Connection lost")
+                    break
+
+                #print("\nCurrent robot position:")
+                #print(data)
+
+            except Exception as e:
+                print("Receive error:", e)
+                break
+
+            time.sleep(0.1)
+
 
     def set_override(self, value: float):
         value = max(0.0, min(1.0, value))
