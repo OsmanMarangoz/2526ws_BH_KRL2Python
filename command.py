@@ -182,7 +182,7 @@ class Command:
 
             case 9:
                 print(" Change Mode selected")
-                self.commandMode = CommandMode.CHANGEMODE
+                self.changeMode()
 
             case _:
                 print(" ERROR: Invalid option!")

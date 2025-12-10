@@ -23,11 +23,11 @@ class GripperController:
     GRIP_MODE_JAW = 1
     GRIP_MODE_VACUUM = 2
 
-    # Jaw direction modes
+    # Jaw direction modes, entscheiden ob oeffnen oder schliessen
     JAW_DIRECTION_OPEN = 0
     JAW_DIRECTION_CLOSE = 1
 
-    # Default jaw gripper values (adjust based on your hardware)
+    # Default jaw gripper values von motion_eki.src fuer servo gripper, wird geskippt weil pneumatisch, aber src file erwartets.
     DEFAULT_JAW_TOLERANCE = 50      # 0.5mm (value * 100)
     DEFAULT_JAW_VELOCITY = 50       # 50% speed
     DEFAULT_JAW_FORCE = 30          # grip force
