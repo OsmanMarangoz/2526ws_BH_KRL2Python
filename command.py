@@ -1,4 +1,5 @@
 # import keyboard
+from unittest import case
 from point import Point6D
 from robot import Robot
 from csvHelper import load_point_csv,save_point_csv
@@ -18,6 +19,15 @@ class Command:
         self.acceleration = 0.2
         self.blending = 0.0
         self.fileName = "points.csv"
+
+        # Gripper parameters (defaults)
+        self.jaw_velocity = 50       # 0-100%
+        self.jaw_force = 30
+        self.jaw_tolerance = 50      # 0.5mm
+        self.jaw_base_position = 75
+        self.jaw_work_position = 4875
+        self.jaw_teach_position = 3000
+        self.jaw_shift_position = 500
 
 # ------------------------------------------- Loops for threading -------------------------------------------
     def loop(self):
@@ -134,7 +144,49 @@ class Command:
                 print(" ERROR: Invalid selection!")
 
     def grip(self):
-        print("...")
+        print()
+        print("\n=== Gripper Menu ===")
+        print(" 1 Jaw Gripper - Open")
+        print(" 2 Jaw Gripper - Close")
+        print(" 3 Vacuum - ON")
+        print(" 4 Vacuum - OFF")
+        print(" 5 Gripper settings")
+        print(" 9 - Change Mode")
+        print("=====================")
+
+
+        userInput = self.getUserIntegerInput()
+
+        match userInput:
+            case 1:
+                print(" Opening jaw gripper ...")
+                self.robot.jaw_open()
+                print(" Jaw gripper opened")
+
+            case 2:
+                print(" Closing jaw gripper ...")
+                self.robot.jaw_close()
+                print(" Jaw gripper closed")
+
+            case 3:
+                print(" Turning vacuum ON...")
+                self.robot.vacuum_on()
+                print(" Vacuum ON")
+
+            case 4:
+                print(" Turning vacuum OFF...")
+                self.robot.vacuum_off()
+                print(" Vacuum OFF")
+            case 5:
+                print(" TODO: Gripper settings selected")
+
+            case 9:
+                print(" Change Mode selected")
+                self.commandMode = CommandMode.CHANGEMODE
+
+            case _:
+                print(" ERROR: Invalid option!")
+
 
     def savePoint(self):
         print()
@@ -149,11 +201,11 @@ class Command:
         match userInput:
             case 1:
                 print(" Touchup selected")
-                self.touchUp() 
+                self.touchUp()
 
             case 2:
                 print(" Manual safe point selected")
-                self.manualSavePoint()  
+                self.manualSavePoint()
 
             case 9:
                 print(" Change Mode selected")
@@ -194,7 +246,7 @@ class Command:
                     print(" ERROR: Invalid selection!")
 # -----------------------------------------------------------------------------------------------------------
 
-# ------------------------------------------- move subfunctions ---------------------------------------------    
+# ------------------------------------------- move subfunctions ---------------------------------------------
     def ptpJoint(self):
         print("tbd")
 
@@ -209,7 +261,7 @@ class Command:
 
         if not userInput:
             print(" ERROR: Input must not be empty!")
-            return 
+            return
 
         tempPoint = None
 
@@ -225,12 +277,12 @@ class Command:
                 a = float(parts[3])
                 b = float(parts[4])
                 c = float(parts[5])
-                
+
                 tempPoint = Point6D(
                     name="manual_input",
                     x=x, y=y, z=z,
                     a=a, b=b, c=c)
-                
+
                 print(" Manual point accepted.")
             except ValueError:
                 print(" ERROR: Manual input must contain only numeric values!")
@@ -285,7 +337,7 @@ class Command:
 
         if not userInput:
             print(" ERROR: Input must not be empty!")
-            return 
+            return
 
         tempPoint = None
 
@@ -301,12 +353,12 @@ class Command:
                 a = float(parts[3])
                 b = float(parts[4])
                 c = float(parts[5])
-                
+
                 tempPoint = Point6D(
                     name="manual_input",
                     x=x, y=y, z=z,
                     a=a, b=b, c=c)
-                
+
                 print(" Manual point accepted.")
             except ValueError:
                 print(" ERROR: Manual input must contain only numeric values!")
@@ -408,7 +460,7 @@ class Command:
             print(f" ERROR saving point: {e}")
 
 # -----------------------------------------------------------------------------------------------------------
-    
+
 # ------------------------------------------- settings subfunctions -----------------------------------------
     def setTool(self):
         val = self.getUserIntegerInput()
@@ -439,4 +491,73 @@ class Command:
         if val is not None:
             self.blending = val
             print(f" Blending set to {self.blending}")
-# -----------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------    # ---------------------- Gripper Commands ----------------------
+    def jaw_open(
+        self,
+        velocity: int = None,
+        force: int = None,
+        tolerance: int = None,
+        base_position: int = None,
+        work_position: int = None,
+        teach_position: int = None,
+        shift_position: int = None
+    ) -> None:
+        """
+        Open the jaw gripper.
+
+        Args:
+            velocity: Gripper speed (0-100%)
+            force: Grip force
+            tolerance: Position tolerance
+            base_position: Base position
+            work_position: Work position
+            teach_position: Teach position
+            shift_position: Shift position
+        """
+        self.gripper_controller.jaw_open(
+            velocity=velocity,
+            force=force,
+            tolerance=tolerance,
+            base_position=base_position,
+            work_position=work_position,
+            teach_position=teach_position,
+            shift_position=shift_position
+        )
+        def jaw_close(
+            self,
+            velocity: int = None,
+            force: int = None,
+            tolerance: int = None,
+            base_position: int = None,
+            work_position: int = None,
+            teach_position: int = None,
+            shift_position: int = None
+        ) -> None:
+            """
+            Close the jaw gripper.
+
+            Args:
+                velocity: Gripper speed (0-100%)
+                force: Grip force
+                tolerance: Position tolerance
+                base_position: Base position
+                work_position: Work position
+                teach_position: Teach position
+                shift_position: Shift position
+            """
+            self.gripper_controller.jaw_close(
+                velocity=velocity,
+                force=force,
+                tolerance=tolerance,
+                base_position=base_position,
+                work_position=work_position,
+                teach_position=teach_position,
+                shift_position=shift_position
+            )
+            def vacuum_on(self, cylinder: float = 0.0) -> None:
+                """Turn vacuum gripper ON."""
+                self.gripper_controller.vacuum_on(cylinder=cylinder)
+
+            def vacuum_off(self, cylinder: float = 0.0) -> None:
+                """Turn vacuum gripper OFF."""
+                self.gripper_controller.vacuum_off(cylinder=cylinder)
