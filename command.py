@@ -20,15 +20,6 @@ class Command:
         self.blending = 0.0
         self.fileName = "points.csv"
 
-        # Gripper parameters (defaults)
-        self.jaw_velocity = 50       # 0-100%
-        self.jaw_force = 30
-        self.jaw_tolerance = 50      # 0.5mm
-        self.jaw_base_position = 75
-        self.jaw_work_position = 4875
-        self.jaw_teach_position = 3000
-        self.jaw_shift_position = 500
-
 # ------------------------------------------- Loops for threading -------------------------------------------
     def loop(self):
         while self.robot.motion_transport.connected:
@@ -491,73 +482,4 @@ class Command:
         if val is not None:
             self.blending = val
             print(f" Blending set to {self.blending}")
-# -----------------------------------------------------------------------------------------------------------    # ---------------------- Gripper Commands ----------------------
-    def jaw_open(
-        self,
-        velocity: int = None,
-        force: int = None,
-        tolerance: int = None,
-        base_position: int = None,
-        work_position: int = None,
-        teach_position: int = None,
-        shift_position: int = None
-    ) -> None:
-        """
-        Open the jaw gripper.
-
-        Args:
-            velocity: Gripper speed (0-100%)
-            force: Grip force
-            tolerance: Position tolerance
-            base_position: Base position
-            work_position: Work position
-            teach_position: Teach position
-            shift_position: Shift position
-        """
-        self.gripper_controller.jaw_open(
-            velocity=velocity,
-            force=force,
-            tolerance=tolerance,
-            base_position=base_position,
-            work_position=work_position,
-            teach_position=teach_position,
-            shift_position=shift_position
-        )
-        def jaw_close(
-            self,
-            velocity: int = None,
-            force: int = None,
-            tolerance: int = None,
-            base_position: int = None,
-            work_position: int = None,
-            teach_position: int = None,
-            shift_position: int = None
-        ) -> None:
-            """
-            Close the jaw gripper.
-
-            Args:
-                velocity: Gripper speed (0-100%)
-                force: Grip force
-                tolerance: Position tolerance
-                base_position: Base position
-                work_position: Work position
-                teach_position: Teach position
-                shift_position: Shift position
-            """
-            self.gripper_controller.jaw_close(
-                velocity=velocity,
-                force=force,
-                tolerance=tolerance,
-                base_position=base_position,
-                work_position=work_position,
-                teach_position=teach_position,
-                shift_position=shift_position
-            )
-            def vacuum_on(self, cylinder: float = 0.0) -> None:
-                """Turn vacuum gripper ON."""
-                self.gripper_controller.vacuum_on(cylinder=cylinder)
-
-            def vacuum_off(self, cylinder: float = 0.0) -> None:
-                """Turn vacuum gripper OFF."""
-                self.gripper_controller.vacuum_off(cylinder=cylinder)
+# -----------------------------------------------------------------------------------------------------------
