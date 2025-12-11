@@ -5,9 +5,30 @@ import time
 
 
 class MotionController:
-    def __init__(self, motionTransport):
-        self.motionTransport = motionTransport
-        self.lastMotionPacket: bytes | None = None
+
+    # Command type 3 = gripp only
+    COMMAND_TYPE_GRIP = 3
+
+    # Gripper modes
+    GRIP_MODE_JAW = 1
+    GRIP_MODE_VACUUM = 2
+
+    # Jaw direction modes, entscheiden ob oeffnen=1 oder schliessen=0
+    JAW_DIRECTION_OPEN = 0
+    JAW_DIRECTION_CLOSE = 1
+
+    # Default jaw gripper values von motion_eki.src fuer servo gripper, wird geskippt weil pneumatisch, aber src file erwartets.
+    DEFAULT_JAW_TOLERANCE = 50      # 0.5mm (value * 100)
+    DEFAULT_JAW_VELOCITY = 50       # 50% speed
+    DEFAULT_JAW_FORCE = 30          # grip force
+    DEFAULT_JAW_BASE_POSITION = 75
+    DEFAULT_JAW_WORK_POSITION = 4875
+    DEFAULT_JAW_TEACH_POSITION = 3000
+    DEFAULT_JAW_SHIFT_POSITION = 500
+
+
+    def __init__(self, transport):
+        self.transport = transport
         self.cmd_counter = 1
 
     def get_current_Point6D(self, name: str) -> Point6D:
@@ -44,7 +65,7 @@ class MotionController:
         except Exception as e:
             print(f" ERROR while reading current point: {e}")
             return None
-    
+
     def touchup(self, name: str, csv_file: str):
         point : Point6D = self.get_current_Point6D(name)
         save_point_csv(csv_file, point)
@@ -67,7 +88,9 @@ class MotionController:
                 print("Motion receive error:", e)
                 break
 
-    def to_xml(self, cmd_id: int, point: Point6D, cmd_type: int = 1, mode: int = 1, 
+            time.sleep(0.1)
+
+    def _build_move_xml(self, cmd_id: int, point: Point6D, cmd_type: int = 1, mode: int = 1,
         vel: float = 0.5, acc: float = 0.5, base: int = 0, tool: int = 0, blending: float = 0.0,
         wait_for_gripper: int = 0):
         root = ET.Element("RobotCommand", Id=str(cmd_id), Type=str(cmd_type))
@@ -100,15 +123,15 @@ class MotionController:
         full_message = f'<?xml version="1.0" encoding="UTF-8"?>\n<EthernetKRL>\n{xml_body}\n</EthernetKRL>\n'
         return full_message.encode("utf-8")
 
-    def send_move(self, point: Point6D, cmd_type, mode, vel, base, tool, blending):
-        xml_bytes = self.to_xml(
-            cmd_id=self.cmd_counter, 
+    def _send_move(self, point: Point6D, cmd_type, mode, vel, base, tool, blending):
+        xml_bytes = self._build_move_xml(
+            cmd_id=self.cmd_counter,
             point=point,
-            cmd_type=cmd_type, 
-            mode=mode, 
+            cmd_type=cmd_type,
+            mode=mode,
             vel=vel,
-            base=base, 
-            tool=tool, 
+            base=base,
+            tool=tool,
             blending=blending
         )
 
@@ -117,10 +140,147 @@ class MotionController:
         self.cmd_counter += 1
 
     def ptp(self, point: Point6D, vel, base=0, tool=0, blending=0.0):
-        self.send_move(point, cmd_type=1, mode=2, vel=vel, base=base, tool=tool, blending=blending)
+        self._send_move(point, cmd_type=1, mode=2, vel=vel, base=base, tool=tool, blending=blending)
 
     def lin(self, point: Point6D, vel, base=0, tool=0, blending=0.0):
-        self.send_move(point, cmd_type=1, mode=3, vel=vel, base=base, tool=tool, blending=blending)
+        self._send_move(point, cmd_type=1, mode=3, vel=vel, base=base, tool=tool, blending=blending)
 
     def circ(self, point: Point6D, vel, base=0, tool=0, blending=0.0):
-        self.send_move(point, cmd_type=1, mode=4, vel=vel, base=base, tool=tool, blending=blending)
+        self._send_move(point, cmd_type=1, mode=4, vel=vel, base=base, tool=tool, blending=blending)
+
+    # ==================== GRIPPER METHODS ====================
+
+    # baut den xml string auf fuer den gripper command
+    def _build_grip_xml(
+        self,
+        grip_mode: int,
+        jaw_tolerance: int = 0,
+        jaw_velocity: int = 0,
+        jaw_force: int = 0,
+        jaw_base_position: int = 0,
+        jaw_work_position: int = 0,
+        jaw_teach_position: int = 0,
+        jaw_shift_position: int = 0,
+        jaw_direction_mode: int = 0,
+        vacuum_suction: int = 0,
+        vacuum_cylinder: float = 0.0
+    ) -> bytes:
+        """Build XML command for gripper"""
+
+        # RobotCommand Element mit Id und Type=3 (Grip)
+        root = ET.Element("RobotCommand", Id=str(self.cmd_counter), Type=str(self.COMMAND_TYPE_GRIP))
+
+        # Grip Element mit Mode
+        grip = ET.SubElement(root, "Grip", Mode=str(grip_mode))
+
+        # Jaw Element mit allen Attributen
+        jaw = ET.SubElement(grip, "Jaw")
+        jaw.set("Tolerance", str(jaw_tolerance))
+        jaw.set("Velocity", str(jaw_velocity))
+        jaw.set("Force", str(jaw_force))
+        jaw.set("BasePosition", str(jaw_base_position))
+        jaw.set("WorkPosition", str(jaw_work_position))
+        jaw.set("TeachPosition", str(jaw_teach_position))
+        jaw.set("ShiftPosition", str(jaw_shift_position))
+        jaw.set("DirectionMode", str(jaw_direction_mode))
+
+        # Vacuum Element
+        vacuum = ET.SubElement(grip, "Vacuum")
+        vacuum.set("Suction", str(vacuum_suction))
+        vacuum.set("Cylinder", str(vacuum_cylinder))
+
+        # XML zusammenbauen wie in _build_move_xml
+        xml_body = ET.tostring(root, encoding="utf-8", method="xml").decode("utf-8")
+        full_message = f'<?xml version="1.0" encoding="UTF-8"?>\n<EthernetKRL>\n{xml_body}\n</EthernetKRL>\n'
+        return full_message.encode("utf-8")
+
+
+    def jaw_open(
+        self,
+        velocity: int = None,
+        force: int = None,
+        tolerance: int = None,
+        base_position: int = None,
+        work_position: int = None,
+        teach_position: int = None,
+        shift_position: int = None
+    ) -> None:
+        """Open the jaw gripper."""
+        xml = self._build_grip_xml(
+            grip_mode=self.GRIP_MODE_JAW,
+            jaw_tolerance=tolerance if tolerance is not None else self.DEFAULT_JAW_TOLERANCE,
+            jaw_velocity=velocity if velocity is not None else self.DEFAULT_JAW_VELOCITY,
+            jaw_force=force if force is not None else self.DEFAULT_JAW_FORCE,
+            jaw_base_position=base_position if base_position is not None else self.DEFAULT_JAW_BASE_POSITION,
+            jaw_work_position=work_position if work_position is not None else self.DEFAULT_JAW_WORK_POSITION,
+            jaw_teach_position=teach_position if teach_position is not None else self.DEFAULT_JAW_TEACH_POSITION,
+            jaw_shift_position=shift_position if shift_position is not None else self.DEFAULT_JAW_SHIFT_POSITION,
+            jaw_direction_mode=self.JAW_DIRECTION_OPEN
+        )
+
+        self.transport.send(xml)
+        print(f" Jaw gripper OPEN command sent (ID: {self.cmd_counter})")
+        self.cmd_counter += 1
+
+    def jaw_close(
+        self,
+        velocity: int = None,
+        force: int = None,
+        tolerance: int = None,
+        base_position: int = None,
+        work_position: int = None,
+        teach_position: int = None,
+        shift_position: int = None
+    ) -> None:
+        """Close the jaw gripper."""
+        xml = self._build_grip_xml(
+            grip_mode=self.GRIP_MODE_JAW,
+            jaw_tolerance=tolerance if tolerance is not None else self.DEFAULT_JAW_TOLERANCE,
+            jaw_velocity=velocity if velocity is not None else self.DEFAULT_JAW_VELOCITY,
+            jaw_force=force if force is not None else self.DEFAULT_JAW_FORCE,
+            jaw_base_position=base_position if base_position is not None else self.DEFAULT_JAW_BASE_POSITION,
+            jaw_work_position=work_position if work_position is not None else self.DEFAULT_JAW_WORK_POSITION,
+            jaw_teach_position=teach_position if teach_position is not None else self.DEFAULT_JAW_TEACH_POSITION,
+            jaw_shift_position=shift_position if shift_position is not None else self.DEFAULT_JAW_SHIFT_POSITION,
+            jaw_direction_mode=self.JAW_DIRECTION_CLOSE
+        )
+
+        self.transport.send(xml)
+        print(f" Jaw gripper CLOSE command sent (ID: {self.cmd_counter})")
+        self.cmd_counter += 1
+
+
+    def vacuum_on(self, cylinder: float = 0.0) -> None:
+        """
+        Turn vacuum gripper ON.
+
+        Args:
+            cylinder: Cylinder position, default 0.0
+        """
+        xml = self._build_grip_xml(
+            grip_mode=self.GRIP_MODE_VACUUM,
+            vacuum_suction=1,
+            vacuum_cylinder=cylinder
+        )
+
+        self.transport.send(xml)
+        print(f" Vacuum ON command sent (ID: {self.cmd_counter})")
+        self.cmd_counter += 1
+
+
+    def vacuum_off(self, cylinder: float = 0.0) -> None:
+        """
+        Turn vacuum gripper OFF.
+
+        Args:
+            cylinder: Cylinder position, default 0.0
+        """
+        xml = self._build_grip_xml(
+            grip_mode=self.GRIP_MODE_VACUUM,
+            vacuum_suction=0,
+            vacuum_cylinder=cylinder
+        )
+
+        self.transport.send(xml)
+        print(f" Vacuum OFF command sent (ID: {self.cmd_counter})")
+        self.cmd_counter += 1
