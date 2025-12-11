@@ -1,7 +1,7 @@
 import socket
 
 class TcpTransport:
-    def __init__(self, ip: str, port: int, timeout: float = 3.0):
+    def __init__(self, ip: str, port: int, timeout: float = 0.2):
         self.ip = ip
         self.port = port
         self.timeout = timeout
@@ -12,15 +12,24 @@ class TcpTransport:
         if self.connected:
             return
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.socket.settimeout(self.timeout)
+        self.socket.settimeout(self.timeout)
         self.socket.connect((self.ip, self.port))
         self.connected = True
         print(f"Connected to {self.ip}:{self.port}")
 
     def disconnect(self):
-        if self.socket:
-            self.socket.close()
-        self.connected = False
+        try:
+            if self.socket:
+                try:
+                    self.socket.shutdown(socket.SHUT_RDWR)  # sendet FIN an KRC
+                except Exception:
+                    pass  # kann schon tot sein
+
+                self.socket.close()
+
+        finally:
+            self.connected = False
+            print("Socket cleanly disconnected")
 
     def send(self, data: bytes):
         if not self.connected:

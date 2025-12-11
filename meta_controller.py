@@ -1,51 +1,48 @@
 import xml.etree.ElementTree as ET
-from point import Point6D
 import time
 
 class MetaController:
-    def __init__(self, transport):
-        self.transport = transport
+    def __init__(self, metaTransport):
+        self.metaTransport = metaTransport
 
     def receive_meta_loop(self):
-        while self.transport.connected:
+        while self.metaTransport.connected:
             try:
-                data = self.transport.socket.recv(4096)
+                data = self.metaTransport.socket.recv(4096)
+                # print(data)
                 if not data:
-                    print("Connection lost")
+                    print("Meta connection lost")
                     break
 
-                #print("\nCurrent robot position:")
-                #print(data)
+            except self.metaTransport.socket.timeout:
+                continue
 
             except Exception as e:
-                print("Receive error:", e)
+                print("Meta receive error:", e)
                 break
-
-            time.sleep(0.1)
-
 
     def set_override(self, value: float):
         value = max(0.0, min(1.0, value))
         xml = self._build_xml(value, abort=0)
-        self.transport.send(xml)
+        print(f"Override sent:\n{xml.decode()}")
+        self.metaTransport.send(xml)
         print(f" OVERRIDE: {value*100:.0f}%")
 
     def emergency_stop(self):
         xml = self._build_xml(0.0, abort=1)
-        self.transport.send(xml)
+        self.metaTransport.send(xml)
+        print(f"Emergency stop sent:\n{xml.decode()}")
 
     def reset_abort(self):
         xml = self._build_xml(1.0, abort=0)
-        self.transport.send(xml)
+        self.metaTransport.send(xml)
+        print(f"Reset sent:\n{xml.decode()}")
 
     def _build_xml(self, override, abort):
         root = ET.Element("MetaCommand",
             VelocityOverride=str(override),
             AbortCommands=str(abort)
         )
-        body = ET.tostring(root, encoding="utf-8").decode()
-        return f'''<?xml version="1.0" encoding="UTF-8"?>
-<EthernetKRL>
-{body}
-</EthernetKRL>
-'''.encode()
+        xml_body = ET.tostring(root, encoding="utf-8", method="xml").decode("utf-8")
+        full_message = f'<?xml version="1.0" eencoding="UTF-8"?>\n<EthernetKRL>\n{xml_body}\n</EthernetKRL>\n'
+        return full_message.encode("utf-8")

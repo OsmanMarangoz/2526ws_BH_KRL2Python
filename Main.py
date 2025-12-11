@@ -10,7 +10,6 @@ from command import Command
 
 
 if __name__ == "__main__":
-
     
     KUKA_IP = "10.181.116.41"
     KUKA_PORT_META = 54601
@@ -22,6 +21,7 @@ if __name__ == "__main__":
     command = Command(kuka)
     
     if kuka.motion_transport.connected:
+
         # Thread for receiving actual position
         recv_motion_thread = threading.Thread(
             target=kuka.receive_motion_loop,
@@ -47,7 +47,7 @@ if __name__ == "__main__":
             target=command.safetyLoop,
             daemon=True
         )
-        # cmd_safety_thread.start()
+        cmd_safety_thread.start()
 
         # Keep main thread alive
         while kuka.motion_transport.connected:
