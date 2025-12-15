@@ -49,3 +49,22 @@ def load_point_csv(filename: str, name: str) -> Point6D:
                     c=float(row["c"]),
                 )
     raise KeyError(f"Point '{name}' not found")
+
+def load_all_points_csv(filename: str) -> list[Point6D]:
+    points: list[Point6D] = []
+    with open(filename, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # Skip rows missing required fields
+            if not row.get("name"):
+                continue
+            points.append(Point6D(
+                name=row["name"],
+                x=float(row["x"]),
+                y=float(row["y"]),
+                z=float(row["z"]),
+                a=float(row["a"]),
+                b=float(row["b"]),
+                c=float(row["c"]),
+            ))
+    return points

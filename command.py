@@ -105,6 +105,7 @@ class Command:
         print(" 2 - PTP Cartesian")
         print(" 3 - LIN")
         print(" 4 - CIRC")
+        print(" 5 - Move in Sequence")
         print(" 9 - Change Mode")
         print("====================================")
 
@@ -126,7 +127,42 @@ class Command:
             case 4:
                 print(" CIRC selected")
                 # TODO: self.circ()
+            case 5:
+                print(" Move in Sequence selected")
+                self.move_in_sequence()
+            case 9:
+                print(" Change Mode selected")
+                self.changeMode()
 
+            case _:
+                print(" ERROR: Invalid selection!")
+
+    def move_in_sequence(self):
+        print()
+        print("============ MOVE IN SEQUENCE MENU =============")
+        print(" 1 - PTP Joint Sequence")
+        print(" 2 - PTP Cartesian Sequence")
+        print(" 3 - LIN Sequence")
+        print(" 4 - CIRC Sequence")
+        print(" 9 - Change Mode")
+        print("====================================")
+
+        userInput = self.getUserIntegerInput()
+        match userInput:
+            case 1:
+                print(" PTP Joint selected")
+                # TODO: self.ptpJoint()
+
+            case 2:
+                print(" PTP Cartesian selected")
+                self.ptpCartesianSequence()
+
+            case 3:
+                print(" LIN selected")
+                # TODO: self.lin()
+            case 4:
+                print(" CIRC selected")
+                # TODO: self.circ()
             case 9:
                 print(" Change Mode selected")
                 self.changeMode()
@@ -395,6 +431,77 @@ class Command:
 
     def circ(self):
         print("tbd")
+# ------------------------------------------- move sequence subfunctions ----------------------------------------
+
+    def ptpCartesianSequence(self):
+        print()
+        print("======= PTP CARTESIAN SEQUENCE =======")
+        print(" Choose CSV file:")
+        try:
+            from pathlib import Path
+            csv_dir = Path(__file__).resolve().parent
+            available_csv = sorted([p.name for p in csv_dir.glob("*.csv")])
+            if available_csv:
+                print(" Available CSV files:")
+                for idx, name in enumerate(available_csv, start=1):
+                    print(f"  {idx}. {name}")
+            else:
+                print(" No CSV files found in project folder; default=points.csv will be used.")
+        except Exception as e:
+            print(f" WARNING: Could not list CSV files automatically: {e}")
+
+        print(f" Default: {self.fileName}")
+        csv_choice = self.getUserStringInput()
+        chosen_file = self.fileName
+        if csv_choice:
+            # If user entered a number, select from list; otherwise treat as filename
+            if csv_choice.isdigit() and 'available_csv' in locals() and available_csv:
+                idx = int(csv_choice)
+                if 1 <= idx <= len(available_csv):
+                    chosen_file = available_csv[idx - 1]
+                else:
+                    print(" ERROR: Invalid selection number. Using default.")
+            else:
+                # Accept raw filename; add .csv if missing
+                if not csv_choice.endswith('.csv'):
+                    csv_choice += '.csv'
+                chosen_file = csv_choice
+
+        print(f" Loading & Sequencing all points from '{chosen_file}' ...")
+
+        from csvHelper import load_all_points_csv
+        try:
+            # Liste von Punkten aus der CSV laden
+            points = load_all_points_csv(chosen_file)
+            if not points:
+                print(" ERROR: No points found in CSV.")
+                return
+            print(f" Loaded {len(points)} points.")
+        except Exception as e:
+            print(f" ERROR while loading points: {e}")
+            return
+
+        print(" Enter velocity (0.1 - 10.0):")
+        userInput = self.getUserStringInput()
+        try:
+            vel = float(userInput)
+            if not 0.1 <= vel <= 10.0:
+                raise ValueError
+        except ValueError:
+            print(f" ERROR: Invalid velocity! Using global velocity '{self.velocity}'")
+            vel = self.velocity
+
+        print(" Sending PTP Cartesian sequence...")
+        # Liste von Points wird, in eine XML string Zusammengefuegt umgewandelt und gesendet
+        self.robot._send_move_sequence(
+            points=points,
+            cmd_type=1,
+            mode=2,
+            vel=vel,
+            base=self.base,
+            tool=self.tool,
+            blending=self.blending
+        )
 # -----------------------------------------------------------------------------------------------------------
 
 # ------------------------------------------- savePoint subfunctions ----------------------------------------

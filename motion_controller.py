@@ -140,6 +140,69 @@ class MotionController:
         print(f"Move sent:\n{xml_bytes.decode()}")
         self.cmd_counter += 1
 
+    def _send_move_sequence(self, points: list[Point6D], cmd_type: int, mode: int, vel: float,
+                           base: int = 0, tool: int = 0, blending: float = 0.0) -> None:
+        """Build and send a sequence of move commands in one transmission.
+
+        Concatenates individual EthernetKRL XML messages for each point and
+        sends the combined bytes in a single call to the transport.
+
+        Ids are assigned incrementally starting from the current cmd_counter.
+        After sending, cmd_counter is advanced by the number of points.
+        """
+        if not points:
+            print("No points provided for sequence.")
+            return
+
+        messages: list[bytes] = []
+        next_id = self.cmd_counter
+        for p in points:
+            xml_bytes = self._build_move_xml(
+                cmd_id=next_id,
+                point=p,
+                cmd_type=cmd_type,
+                mode=mode,
+                vel=vel,
+                base=base,
+                tool=tool,
+                blending=blending
+            )
+            messages.append(xml_bytes)
+            next_id += 1
+
+        payload = b"".join(messages)
+        self.transport.send(payload)
+        print(f"Sequence sent with {len(points)} moves. Total bytes: {len(payload)}")
+        self.cmd_counter = next_id
+
+    def build_move_sequence_payload(self, points: list[Point6D], cmd_type: int, mode: int, vel: float,
+                                    base: int = 0, tool: int = 0, blending: float = 0.0) -> bytes:
+        """Build concatenated EthernetKRL XML payload for a sequence without sending.
+
+        Returns bytes suitable for transport.send, and advances no counters.
+        Useful for dry-run/offline testing and inspection.
+        """
+        if not points:
+            return b""
+
+        messages: list[bytes] = []
+        next_id = self.cmd_counter
+        for p in points:
+            xml_bytes = self._build_move_xml(
+                cmd_id=next_id,
+                point=p,
+                cmd_type=cmd_type,
+                mode=mode,
+                vel=vel,
+                base=base,
+                tool=tool,
+                blending=blending
+            )
+            messages.append(xml_bytes)
+            next_id += 1
+
+        return b"".join(messages)
+
     def ptp(self, point: Point6D, vel, base=0, tool=0, blending=0.0):
         self._send_move(point, cmd_type=1, mode=2, vel=vel, base=base, tool=tool, blending=blending)
 
