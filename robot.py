@@ -5,7 +5,7 @@ from transport import TcpTransport
 
 class Robot(MotionController, MetaController):
 
-    def __init__(self, ip = "10.181.116.41", port_meta: int = 54601, port_motion: int = 54602):
+    def __init__(self, ip:str, port_meta: int, port_motion: int):
         self.meta_transport   = TcpTransport(ip, port_meta)
         self.motion_transport = TcpTransport(ip, port_motion)
 

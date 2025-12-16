@@ -1,4 +1,3 @@
-# import keyboard
 from unittest import case
 import keyboard
 from point import Point6D
@@ -151,9 +150,6 @@ class Command:
         print("\n=== Gripper Menu ===")
         print(" 1 Jaw Gripper - Open")
         print(" 2 Jaw Gripper - Close")
-        print(" 3 Vacuum - ON")
-        print(" 4 Vacuum - OFF")
-        print(" 5 Gripper settings")
         print(" 9 - Change Mode")
         print("=====================")
 
@@ -170,18 +166,6 @@ class Command:
                 print(" Closing jaw gripper ...")
                 self.robot.jaw_close()
                 print(" Jaw gripper closed")
-
-            case 3:
-                print(" Turning vacuum ON...")
-                self.robot.vacuum_on()
-                print(" Vacuum ON")
-
-            case 4:
-                print(" Turning vacuum OFF...")
-                self.robot.vacuum_off()
-                print(" Vacuum OFF")
-            case 5:
-                print(" TODO: Gripper settings selected")
 
             case 9:
                 print(" Change Mode selected")

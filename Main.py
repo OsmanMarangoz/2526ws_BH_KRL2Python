@@ -11,7 +11,7 @@ from command import Command
 
 if __name__ == "__main__":
     
-    KUKA_IP = "10.181.116.41"
+    KUKA_IP = "10.181.116.71"
     KUKA_PORT_META = 54601
     KUKA_PORT_MOTION = 54602
 
