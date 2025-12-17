@@ -9,3 +9,11 @@ class Point6D:
     a: float
     b: float
     c: float
+
+class JointState:
+    a1: float
+    a2: float
+    a3: float
+    a4: float
+    a5: float
+    a6: float

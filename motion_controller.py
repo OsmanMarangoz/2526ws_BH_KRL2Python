@@ -1,7 +1,12 @@
 import xml.etree.ElementTree as ET
 from csvHelper import init_csv, save_point_csv, load_point_csv
-from point import Point6D
+from point import Point6D, JointState
 import time
+import pybulletTest as p
+import pybullet_data
+import math
+
+
 
 
 class MotionController:
@@ -10,13 +15,18 @@ class MotionController:
         self.motionTransport = motionTransport
         self.cmd_counter = 1
 
+        p.connect(p.GUI)
+        p.setGravity(0,0,-9.81)
+        p.setAdditionalSearchPath(pybullet_data.getDataPath())
+        urdf_path = r"/home/lukas/Dokumente/KRL2Python/kuka\kuka_kr3_support\urdf\kr3r540.urdf"
+        self.robotURDF = p.loadURDF(urdf_path, useFixedBase=True)
+
+
     def get_current_Point6D(self, name: str) -> Point6D:
 
         try:
-            # xml_bytes: bytes = self.motionTransport.receive(800)
             xml_bytes: bytes = self.lastMotionPacket
-            print("RAW XML BYTES:", xml_bytes)
-            # parse xml string
+            # print("RAW XML BYTES:", xml_bytes)
 
             end_idx = xml_bytes.find(b"</RobotState>") + len(b"</RobotState>")
             xml_bytes = xml_bytes[:end_idx]
@@ -45,12 +55,42 @@ class MotionController:
             print(f" ERROR while reading current point: {e}")
             return None
 
+    def get_current_joint_state(self) -> JointState:
+        try:
+            xml_bytes: bytes = self.lastMotionPacket
+            # print("RAW XML BYTES:", xml_bytes)
+
+            end_idx = xml_bytes.find(b"</RobotState>") + len(b"</RobotState>")
+            xml_bytes = xml_bytes[:end_idx]
+
+            root = ET.fromstring(xml_bytes.decode())
+
+            joint = root.find(".//Joint")
+            if joint is None:
+                raise RuntimeError("RobotState/Position/Joint not found")
+
+            jointState = JointState(
+                a1 = float(joint.get("A1")),
+                a2 = float(joint.get("A2")),
+                a3 = float(joint.get("A3")),
+                a4 = float(joint.get("A4")),
+                a5 = float(joint.get("A5")),
+                a6 = float(joint.get("A6"))
+            )
+            return jointState
+        except ET.ParseError:
+            print(" ERROR: Failed to parse RobotState XML!")
+            return None
+        except Exception as e:
+            print(f" ERROR while reading current point: {e}")
+            return None
+
     def touchup(self, name: str, csv_file: str):
         point : Point6D = self.get_current_Point6D(name)
         save_point_csv(csv_file, point)
         return point
 
-    def receive_motion_loop(self):
+    def motion_visualization_loop(self):
         while self.motionTransport.connected:
             try:
                 data = self.motionTransport.socket.recv(4096)
@@ -59,6 +99,13 @@ class MotionController:
                     break
 
                 self.lastMotionPacket = data
+                joint_angles_deg = self.get_current_joint_state()
+                joint_angles = [math.radians(a) for a in joint_angles_deg]
+
+                for j in range(6):
+                    p.resetJointState(self.robotURDF, j, joint_angles[j])
+
+                p.stepSimulation()
 
             except self.motionTransport.socket.timeout:
                 continue

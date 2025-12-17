@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
         # Thread for receiving actual position
         recv_motion_thread = threading.Thread(
-            target=kuka.receive_motion_loop,
+            target=kuka.motion_visualization_loop,
             daemon=True
         )
         recv_motion_thread.start()
@@ -52,3 +52,4 @@ if __name__ == "__main__":
         # Keep main thread alive
         while kuka.motion_transport.connected:
             time.sleep(0.5)
+
