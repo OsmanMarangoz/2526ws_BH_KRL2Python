@@ -10,6 +10,7 @@ class Point6D:
     b: float
     c: float
 
+@dataclass
 class JointState:
     a1: float
     a2: float

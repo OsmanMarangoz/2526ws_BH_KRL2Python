@@ -1,5 +1,5 @@
 from unittest import case
-import keyboard
+#  import keyboard
 from point import Point6D
 from robot import Robot
 from csvHelper import load_point_csv,save_point_csv
@@ -37,10 +37,11 @@ class Command:
         print("Connection lost")
 
     def safetyLoop(self):
-        keyboard.add_hotkey(",", lambda: self.robot.emergency_stop())
-        keyboard.add_hotkey("e", lambda: self.robot.reset_abort())
-        keyboard.add_hotkey("+", lambda: self.setOverride(self.override + 0.1))
-        keyboard.add_hotkey("-", lambda: self.setOverride(self.override - 0.1))
+        # keyboard.add_hotkey(",", lambda: self.robot.emergency_stop())
+        # keyboard.add_hotkey("e", lambda: self.robot.reset_abort())
+        # keyboard.add_hotkey("+", lambda: self.setOverride(self.override + 0.1))
+        # keyboard.add_hotkey("-", lambda: self.setOverride(self.override - 0.1))
+        print("...")
 # -----------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------- user input ---------------------------------------------------

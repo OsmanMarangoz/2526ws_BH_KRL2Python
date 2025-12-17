@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from csvHelper import init_csv, save_point_csv, load_point_csv
 from point import Point6D, JointState
 import time
-import pybulletTest as p
+import pybullet as p
 import pybullet_data
 import math
 
@@ -18,7 +18,7 @@ class MotionController:
         p.connect(p.GUI)
         p.setGravity(0,0,-9.81)
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
-        urdf_path = r"/home/lukas/Dokumente/KRL2Python/kuka\kuka_kr3_support\urdf\kr3r540.urdf"
+        urdf_path = r"C:\Users\marce\Downloads\urdf_files_dataset\urdf_files\ros-industrial\xacro_generated\kuka\kuka_kr3_support\urdf\kr3r540.urdf"
         self.robotURDF = p.loadURDF(urdf_path, useFixedBase=True)
 
 
@@ -78,6 +78,7 @@ class MotionController:
                 a6 = float(joint.get("A6"))
             )
             return jointState
+        
         except ET.ParseError:
             print(" ERROR: Failed to parse RobotState XML!")
             return None
@@ -100,7 +101,18 @@ class MotionController:
 
                 self.lastMotionPacket = data
                 joint_angles_deg = self.get_current_joint_state()
-                joint_angles = [math.radians(a) for a in joint_angles_deg]
+                if joint_angles_deg is None:
+                    continue
+
+                joint_angles = [
+                math.radians(joint_angles_deg.a1),
+                math.radians(joint_angles_deg.a2),
+                math.radians(joint_angles_deg.a3),
+                math.radians(joint_angles_deg.a4),
+                math.radians(joint_angles_deg.a5),
+                math.radians(joint_angles_deg.a6),
+                ]
+                #  joint_angles = [math.radians(a) for a in joint_angles_deg]
 
                 for j in range(6):
                     p.resetJointState(self.robotURDF, j, joint_angles[j])

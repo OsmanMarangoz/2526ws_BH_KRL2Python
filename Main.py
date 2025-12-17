@@ -47,7 +47,7 @@ if __name__ == "__main__":
             target=command.safetyLoop,
             daemon=True
         )
-        cmd_safety_thread.start()
+        # cmd_safety_thread.start()
 
         # Keep main thread alive
         while kuka.motion_transport.connected:
