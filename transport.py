@@ -34,6 +34,8 @@ class TcpTransport:
     def send(self, data: bytes):
         if not self.connected:
             raise RuntimeError("Not connected")
+        print("SEND ->", self.socket.getpeername())   # Ziel (IP, Port)
+
         self.socket.sendall(data)
 
     def receive(self, bufsize: int = 8192) -> bytes:

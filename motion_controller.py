@@ -15,12 +15,11 @@ class MotionController:
         self.motionTransport = motionTransport
         self.cmd_counter = 1
 
-        p.connect(p.GUI)
-        p.setGravity(0,0,-9.81)
-        p.setAdditionalSearchPath(pybullet_data.getDataPath())
-        urdf_path = r"C:\Users\marce\Downloads\urdf_files_dataset\urdf_files\ros-industrial\xacro_generated\kuka\kuka_kr3_support\urdf\kr3r540.urdf"
-        self.robotURDF = p.loadURDF(urdf_path, useFixedBase=True)
-
+        # p.connect(p.GUI)
+        # p.setGravity(0,0,-9.81)
+        # p.setAdditionalSearchPath(pybullet_data.getDataPath())
+        # urdf_path = r"C:\Users\marce\Downloads\urdf_files_dataset\urdf_files\ros-industrial\xacro_generated\kuka\kuka_kr3_support\urdf\kr3r540.urdf"
+        # self.robotURDF = p.loadURDF(urdf_path, useFixedBase=True)'
 
     def get_current_Point6D(self, name: str) -> Point6D:
 

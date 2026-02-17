@@ -1,5 +1,6 @@
 from unittest import case
-#  import keyboard
+import keyboard
+import time
 from point import Point6D
 from robot import Robot
 from csvHelper import load_point_csv,save_point_csv
@@ -12,7 +13,7 @@ class Command:
         self.robot = robot
         self.commandMode = CommandMode.CHANGEMODE      # Startmode
         # Globale Command-Parameter
-        self.override = 1
+        self.override = 1.0
         self.tool = 0
         self.base = 0
         self.velocity = 0.2
@@ -39,9 +40,12 @@ class Command:
     def safetyLoop(self):
         # keyboard.add_hotkey(",", lambda: self.robot.emergency_stop())
         # keyboard.add_hotkey("e", lambda: self.robot.reset_abort())
-        # keyboard.add_hotkey("+", lambda: self.setOverride(self.override + 0.1))
-        # keyboard.add_hotkey("-", lambda: self.setOverride(self.override - 0.1))
+        keyboard.add_hotkey("+", lambda: self.setOverride(self.override +10))
+        keyboard.add_hotkey("-", lambda: self.setOverride(self.override -10))
         print("...")
+
+        # while True:
+        #     time.sleep(0.1)
 # -----------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------- user input ---------------------------------------------------
@@ -75,8 +79,8 @@ class Command:
 # -----------------------------------------------------------------------------------------------------------
 
 # --------------------------------------------- override ----------------------------------------------------
-    def setOverride(self, value: float):
-        value = max(0.0, min(1.0, value))
+    def setOverride(self, value: int):
+        value = max(0, min(100, value))
         self.override = value
         self.robot.set_override(value)
 

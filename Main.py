@@ -11,7 +11,7 @@ from command import Command
 
 if __name__ == "__main__":
     
-    KUKA_IP = "10.181.116.71"
+    KUKA_IP = "10.181.116.41"
     KUKA_PORT_META = 54601
     KUKA_PORT_MOTION = 54602
 
@@ -27,7 +27,7 @@ if __name__ == "__main__":
             target=kuka.motion_visualization_loop,
             daemon=True
         )
-        recv_motion_thread.start()
+        # recv_motion_thread.start()
 
         recv_meta_thread = threading.Thread(
             target=kuka.receive_meta_loop,
@@ -35,7 +35,7 @@ if __name__ == "__main__":
         )
         recv_meta_thread.start()
 
-        # Thread for console input
+        # Thread for console input8
         cmd_motion_thread = threading.Thread(
             target=command.loop,
             daemon=True
@@ -47,7 +47,7 @@ if __name__ == "__main__":
             target=command.safetyLoop,
             daemon=True
         )
-        # cmd_safety_thread.start()
+        cmd_safety_thread.start()
 
         # Keep main thread alive
         while kuka.motion_transport.connected:
