@@ -39,9 +39,6 @@ class MetaController:
         self.metaTransport.send(xml)
         print(f"Reset sent:\n{xml.decode()}")
 
-
-
-
     def _build_xml(self, override: int, abort: int):
         full_message = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -51,33 +48,3 @@ class MetaController:
         )
 
         return full_message.encode("utf-8")
-
-"""
-    def _build_xml(self, override, abort):
-        root = ET.Element("MetaCommand", VelocityOverride=str(override))
-        payload = ET.tostring(root, encoding="utf-8", method="xml")
-
-        # RAW prints (ohne decode)
-        print("payload repr:", repr(payload))
-        print("first bytes:", list(payload[:16]))
-        print("hex:", payload.hex(" ", 1))  
-
-
-        return payload
-
-"""
-
-
-# def _build_xml(self, override, abort):
-        # root = ET.Element("MetaCommand",
-        #     VelocityOverride=str(override),
-        #     AbortCommands=str(abort)
-        # )
-        # xml_body = ET.tostring(root, encoding="utf-8", method="xml").decode("utf-8")
-        # full_message = f'<?xml version="1.0" encoding="UTF-8"?>\n<ETHERNETKRL>\n{xml_body}\n</ETHERNETKRL>\n'
-        # return full_message.encode("utf-8")
-     
-        # xml_body = ET.tostring(root, encoding="utf-8", method="xml").decode("utf-8")
-        # full_message = f'<?xml version="1.0" encoding="UTF-8"?>\n<EthernetKRL>\n{xml_body}\n</EthernetKRL>\n'
-        # return full_message.encode("utf-8")
-     

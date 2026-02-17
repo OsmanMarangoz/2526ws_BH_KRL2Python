@@ -3,7 +3,7 @@ import keyboard
 import time
 from point import Point6D
 from robot import Robot
-from csvHelper import load_point_csv,save_point_csv
+from csvHelper import load_point_csv,save_point_csv,load_all_points_csv
 
 from commandMode import CommandMode
 
@@ -11,8 +11,7 @@ class Command:
 
     def __init__(self, robot):
         self.robot = robot
-        self.commandMode = CommandMode.CHANGEMODE      # Startmode
-        # Globale Command-Parameter
+        self.commandMode = CommandMode.CHANGEMODE
         self.override = 1.0
         self.tool = 0
         self.base = 0
@@ -42,10 +41,6 @@ class Command:
         # keyboard.add_hotkey("e", lambda: self.robot.reset_abort())
         keyboard.add_hotkey("+", lambda: self.setOverride(self.override +10))
         keyboard.add_hotkey("-", lambda: self.setOverride(self.override -10))
-        print("...")
-
-        # while True:
-        #     time.sleep(0.1)
 # -----------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------- user input ---------------------------------------------------
@@ -121,6 +116,7 @@ class Command:
         print(" 2 - PTP Cartesian")
         print(" 3 - LIN")
         print(" 4 - CIRC")
+        print(" 5 - Move in Sequence")
         print(" 9 - Change Mode")
         print("====================================")
 
@@ -142,6 +138,9 @@ class Command:
             case 4:
                 print(" CIRC selected")
                 # TODO: self.circ()
+            case 5:
+                print(" Move in Sequence selected")
+                self.ptpCartesianSequence()
 
             case 9:
                 print(" Change Mode selected")
@@ -297,11 +296,11 @@ class Command:
         # -----------------------------
         # 3) Velocity Input
         # -----------------------------
-        print(" Enter velocity (0.1 - 10.0):")
+        print(" Enter velocity (0.0 - 10.0):")
         userInput = self.getUserStringInput()
         try:
             vel = float(userInput)
-            if not 0.1 <= vel <= 10.0:
+            if not 0.0 <= vel <= 10.0:
                 raise ValueError
         except ValueError:
             print(f" ERROR: Invalid velocity! Using global velocity '{self.velocity}'")
@@ -373,11 +372,11 @@ class Command:
         # -----------------------------
         # 3) Velocity Input
         # -----------------------------
-        print(" Enter velocity (0.1 - 10.0):")
+        print(" Enter velocity (0.0 - 10.0):")
         userInput = self.getUserStringInput()
         try:
             vel = float(userInput)
-            if not 0.1 <= vel <= 10.0:
+            if not 0.0 <= vel <= 10.0:
                 raise ValueError
         except ValueError:
             print(f" ERROR: Invalid velocity! Using global velocity '{self.velocity}'")
@@ -396,6 +395,77 @@ class Command:
 
     def circ(self):
         print("tbd")
+    
+    # ------------------------------------------- move sequence subfunctions ----------------------------------------
+
+    def ptpCartesianSequence(self):
+        print()
+        print("======= PTP CARTESIAN SEQUENCE =======")
+        print(" Choose CSV file:")
+        try:
+            from pathlib import Path
+            csv_dir = Path(__file__).resolve().parent
+            available_csv = sorted([p.name for p in csv_dir.glob("*.csv")])
+            if available_csv:
+                print(" Available CSV files:")
+                for idx, name in enumerate(available_csv, start=1):
+                    print(f"  {idx}. {name}")
+            else:
+                print(" No CSV files found in project folder; default=points.csv will be used.")
+        except Exception as e:
+            print(f" WARNING: Could not list CSV files automatically: {e}")
+
+        print(f" Default: {self.fileName}")
+        csv_choice = self.getUserStringInput()
+        chosen_file = self.fileName
+        if csv_choice:
+            # If user entered a number, select from list; otherwise treat as filename
+            if csv_choice.isdigit() and 'available_csv' in locals() and available_csv:
+                idx = int(csv_choice)
+                if 1 <= idx <= len(available_csv):
+                    chosen_file = available_csv[idx - 1]
+                else:
+                    print(" ERROR: Invalid selection number. Using default.")
+            else:
+                # Accept raw filename; add .csv if missing
+                if not csv_choice.endswith('.csv'):
+                    csv_choice += '.csv'
+                chosen_file = csv_choice
+
+        print(f" Loading & Sequencing all points from '{chosen_file}' ...")
+
+        try:
+            # Liste von Punkten aus der CSV laden
+            points = load_all_points_csv(chosen_file)
+            if not points:
+                print(" ERROR: No points found in CSV.")
+                return
+            print(f" Loaded {len(points)} points.")
+        except Exception as e:
+            print(f" ERROR while loading points: {e}")
+            return
+
+        print(" Enter velocity (0.0 - 10.0):")
+        userInput = self.getUserStringInput()
+        try:
+            vel = float(userInput)
+            if not 0.0 <= vel <= 10.0:
+                raise ValueError
+        except ValueError:
+            print(f" ERROR: Invalid velocity! Using global velocity '{self.velocity}'")
+            vel = self.velocity
+
+        print(" Sending PTP Cartesian sequence...")
+        # Liste von Points wird, in eine XML string Zusammengefuegt umgewandelt und gesendet
+        self.robot._send_move_sequence(
+            points=points,
+            cmd_type=1,
+            mode=2,
+            vel=vel,
+            base=self.base,
+            tool=self.tool,
+            blending=self.blending
+        )
 # -----------------------------------------------------------------------------------------------------------
 
 # ------------------------------------------- savePoint subfunctions ----------------------------------------
@@ -469,7 +539,7 @@ class Command:
     def setVelocity(self):
         val = self.getUserFloatInput()
         if val is not None:
-            self.velocity = max(0.1, min(val, 10.0))
+            self.velocity = max(0.0, min(val, 10.0))
             print(f" Velocity set to {self.velocity}")
 
     def setAcceleration(self):
