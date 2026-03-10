@@ -37,8 +37,7 @@ class Command:
         print("Connection lost")
 
     def safetyLoop(self):
-        # keyboard.add_hotkey(",", lambda: self.robot.emergency_stop())
-        # keyboard.add_hotkey("e", lambda: self.robot.reset_abort())
+        keyboard.add_hotkey("s", lambda: self.robot.abort())
         keyboard.add_hotkey("+", lambda: self.setOverride(self.override +10))
         keyboard.add_hotkey("-", lambda: self.setOverride(self.override -10))
 # -----------------------------------------------------------------------------------------------------------
@@ -137,7 +136,7 @@ class Command:
 
             case 4:
                 print(" CIRC selected")
-                # TODO: self.circ()
+                self.circ()
             case 5:
                 print(" Move in Sequence selected")
                 self.ptpCartesianSequence()
@@ -394,7 +393,39 @@ class Command:
         )
 
     def circ(self):
-        print("tbd")
+        print()
+        print("============ CIRC ============")
+        print(" Enter AUX point name:")
+        aux_name = self.getUserStringInput()
+
+        print(" Enter END point name:")
+        end_name = self.getUserStringInput()
+
+        try:
+            auxPoint = load_point_csv(self.fileName, aux_name)
+            endPoint = load_point_csv(self.fileName, end_name)
+        except Exception as e:
+            print(f" ERROR: {e}")
+            return
+
+        print(" Enter velocity (0.0 - 10.0):")
+        userInput = self.getUserStringInput()
+
+        try:
+            vel = float(userInput)
+        except:
+            vel = self.velocity
+
+        print(" Sending CIRC move...")
+
+        self.robot.circ(
+            end=endPoint,
+            aux=auxPoint,
+            vel=vel,
+            base=self.base,
+            tool=self.tool,
+            blending=self.blending
+        )
     
     # ------------------------------------------- move sequence subfunctions ----------------------------------------
 
@@ -460,7 +491,7 @@ class Command:
         self.robot._send_move_sequence(
             points=points,
             cmd_type=1,
-            mode=2,
+            mode=3,
             vel=vel,
             base=self.base,
             tool=self.tool,

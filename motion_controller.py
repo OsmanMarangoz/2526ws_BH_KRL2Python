@@ -13,13 +13,31 @@ class MotionController:
       
     def __init__(self, motionTransport):
         self.motionTransport = motionTransport
-        self.cmd_counter = 1
+        self.cmd_counter = 0
+        self.last_finished_id = 0
 
-        # p.connect(p.GUI)
-        # p.setGravity(0,0,-9.81)
-        # p.setAdditionalSearchPath(pybullet_data.getDataPath())
-        # urdf_path = r"C:\Users\marce\Downloads\urdf_files_dataset\urdf_files\ros-industrial\xacro_generated\kuka\kuka_kr3_support\urdf\kr3r540.urdf"
-        # self.robotURDF = p.loadURDF(urdf_path, useFixedBase=True)'
+        p.connect(p.GUI)
+        p.setGravity(0,0,-9.81)
+        p.setAdditionalSearchPath(pybullet_data.getDataPath())
+        urdf_path = r"C:\Users\marce\Downloads\urdf_files_dataset\urdf_files\ros-industrial\xacro_generated\kuka\kuka_kr3_support\urdf\kr3r540.urdf"
+        self.robotURDF = p.loadURDF(urdf_path, useFixedBase=True)
+
+    def _update_command_state(self):
+        """Parse Command Id, Finished_Id and Stopped from lastMotionPacket."""
+        try:
+            xml_bytes: bytes = self.lastMotionPacket
+            end_idx = xml_bytes.find(b"</RobotState>") + len(b"</RobotState>")
+            xml_bytes = xml_bytes[:end_idx]
+
+            root = ET.fromstring(xml_bytes.decode())
+
+            cmd = root.find(".//Command")
+            if cmd is not None:
+                finished_id = cmd.get("Finished_Id")
+                if finished_id is not None:
+                    self.last_finished_id = int(finished_id)
+        except Exception:
+            pass  # don't crash on parse errors
 
     def get_current_Point6D(self, name: str) -> Point6D:
 
@@ -99,6 +117,8 @@ class MotionController:
                     break
 
                 self.lastMotionPacket = data
+                self._update_command_state()    
+
                 joint_angles_deg = self.get_current_joint_state()
                 if joint_angles_deg is None:
                     continue
@@ -129,7 +149,7 @@ class MotionController:
 
     def _build_move_xml(self, cmd_id: int, point: Point6D, cmd_type: int = 1, mode: int = 1,
         vel: float = 0.5, acc: float = 0.5, base: int = 0, tool: int = 0, blending: float = 0.0,
-        wait_for_gripper: int = 0):
+        wait_for_gripper: int = 0,aux_point: Point6D | None = None):
         root = ET.Element("RobotCommand", Id=str(cmd_id), Type=str(cmd_type))
         move = ET.SubElement(root, "Move",
             Mode=str(mode),
@@ -149,8 +169,17 @@ class MotionController:
         cart.set("C", str(point.c))
 
         aux = ET.SubElement(move, "Cartesian_Aux")
-        for k in ["X","Y","Z","A","B","C"]:
-            aux.set(k, "0")
+
+        if aux_point is not None:
+            aux.set("X", str(aux_point.x))
+            aux.set("Y", str(aux_point.y))
+            aux.set("Z", str(aux_point.z))
+            aux.set("A", str(aux_point.a))
+            aux.set("B", str(aux_point.b))
+            aux.set("C", str(aux_point.c))
+        else:
+            for k in ["X","Y","Z","A","B","C"]:
+             aux.set(k, "0")
 
         joint = ET.SubElement(move, "Joint")
         for a in ["A1","A2","A3","A4","A5","A6"]:
@@ -160,7 +189,7 @@ class MotionController:
         full_message = f'<?xml version="1.0" encoding="UTF-8"?>\n<EthernetKRL>\n{xml_body}\n</EthernetKRL>\n'
         return full_message.encode("utf-8")
 
-    def _send_move(self, point: Point6D, cmd_type, mode, vel, base, tool, blending):
+    def _send_move(self, point: Point6D, cmd_type, mode, vel, base, tool, blending, aux_point: Point6D | None = None):
         xml_bytes = self._build_move_xml(
             cmd_id=self.cmd_counter,
             point=point,
@@ -169,7 +198,8 @@ class MotionController:
             vel=vel,
             base=base,
             tool=tool,
-            blending=blending
+            blending=blending,
+            aux_point=aux_point
         )
 
         self.motionTransport.send(xml_bytes)
@@ -217,8 +247,10 @@ class MotionController:
     def lin(self, point: Point6D, vel, base=0, tool=0, blending=0.0):
         self._send_move(point, cmd_type=1, mode=3, vel=vel, base=base, tool=tool, blending=blending)
 
-    def circ(self, point: Point6D, vel, base=0, tool=0, blending=0.0):
-        self._send_move(point, cmd_type=1, mode=4, vel=vel, base=base, tool=tool, blending=blending)
+
+    # hier war mode = 4 zuvor gesetzt
+    def circ(self,end: Point6D, aux: Point6D, vel, base=0, tool=0, blending=0.0):
+        self._send_move(point= end, cmd_type=1, mode=6, vel=vel, base=base, tool=tool, blending=blending, aux_point=aux)
 
     # ==================== GRIPPER METHODS ====================
 

@@ -9,10 +9,13 @@ from robot import Robot
 from command import Command
 
 
+
 if __name__ == "__main__":
     
+    
 
-    KUKA_IP = "10.181.116.41"
+    KUKA_IP = "10.181.116.51"
+
     KUKA_PORT_META = 54601
     KUKA_PORT_MOTION = 54602
 
@@ -28,7 +31,10 @@ if __name__ == "__main__":
             target=kuka.motion_visualization_loop,
             daemon=True
         )
-        # recv_motion_thread.start()
+
+        recv_motion_thread.start()
+
+
 
         recv_meta_thread = threading.Thread(
             target=kuka.receive_meta_loop,
@@ -36,7 +42,7 @@ if __name__ == "__main__":
         )
         recv_meta_thread.start()
 
-        # Thread for console input8
+        # Thread for console input
         cmd_motion_thread = threading.Thread(
             target=command.loop,
             daemon=True

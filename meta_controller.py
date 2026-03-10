@@ -29,21 +29,16 @@ class MetaController:
         self.metaTransport.send(xml)
         print(f" OVERRIDE: {value}%")
 
-    def emergency_stop(self):
-        xml = self._build_xml(0.0, abort=1)
+    def abort(self):
+        xml = self._build_xml(0, abort=1)
         self.metaTransport.send(xml)
-        print(f"Emergency stop sent:\n{xml.decode()}")
+        print(f"Abort sent:\n{xml.decode()}")
 
-    def reset_abort(self):
-        xml = self._build_xml(1.0, abort=0)
-        self.metaTransport.send(xml)
-        print(f"Reset sent:\n{xml.decode()}")
-
-    def _build_xml(self, override: int, abort: int):
+    def _build_xml(self, override: int, abort: bool):
         full_message = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
             '<EthernetKRL>\n'
-            f'<MetaCommand VelocityOverride="{override}"></MetaCommand>\n'
+            f'<MetaCommand VelocityOverride="{override}" AbortCommand="{abort}"></MetaCommand>\n'
             '</EthernetKRL>\n'
         )
 
