@@ -215,6 +215,55 @@ class MotionController:
         full_message = f'<?xml version="1.0" encoding="UTF-8"?>\n<EthernetKRL>\n{xml_body}\n</EthernetKRL>\n'
         return full_message.encode("utf-8")
 
+    def _build_move_joint_xml(
+        self,
+        cmd_id: int,
+        joints: JointState,
+        cmd_type: int,
+        mode: int,
+        vel: float,
+        acc: float,
+        base: int,
+        tool: int,
+        blending: float,
+        wait_for_gripper: int = 0
+    ):
+        root = ET.Element("RobotCommand", Id=str(cmd_id), Type=str(cmd_type))
+        move = ET.SubElement(
+            root,
+            "Move",
+            Mode=str(mode),
+            BaseIndex=str(base),
+            ToolIndex=str(tool),
+            Velocity=str(vel),
+            Acceleration=str(acc),
+            Blending=str(blending),
+            WaitForGripper=str(wait_for_gripper)
+        )
+
+        cart = ET.SubElement(move, "Cartesian")
+        for k in ["X", "Y", "Z", "A", "B", "C"]:
+            cart.set(k, "0")
+
+        aux = ET.SubElement(move, "Cartesian_Aux")
+        for k in ["X", "Y", "Z", "A", "B", "C"]:
+            aux.set(k, "0")
+
+        joint = ET.SubElement(move, "Joint")
+        joint.set("A1", str(joints.a1))
+        joint.set("A2", str(joints.a2))
+        joint.set("A3", str(joints.a3))
+        joint.set("A4", str(joints.a4))
+        joint.set("A5", str(joints.a5))
+        joint.set("A6", str(joints.a6))
+
+        xml_body = ET.tostring(root, encoding="utf-8", method="xml").decode("utf-8")
+        full_message = (
+            f'<?xml version="1.0" encoding="UTF-8"?>\n'
+            f'<EthernetKRL>\n{xml_body}\n</EthernetKRL>\n'
+        )
+        return full_message.encode("utf-8")
+
     def _send_move(self, point: Point6D, cmd_type, mode, vel, acc, base, tool, blending, aux_point: Point6D | None = None):
         xml_bytes = self._build_move_xml(
             cmd_id=self.cmd_counter,
@@ -275,6 +324,31 @@ class MotionController:
             tool=tool,
             blending=blending
         )
+
+    def ptp_joint(self, joints: JointState, vel=None, acc=None, base=None, tool=None, blending=None):
+        vel, acc, base, tool, blending = self._resolve_motion_params(
+            vel=vel,
+            acc=acc,
+            base=base,
+            tool=tool,
+            blending=blending
+        )
+
+        xml_bytes = self._build_move_joint_xml(
+            cmd_id=self.cmd_counter,
+            joints=joints,
+            cmd_type=1,
+            mode=1,
+            vel=vel,
+            acc=acc,
+            base=base,
+            tool=tool,
+            blending=blending
+        )
+
+        self.motionTransport.send(xml_bytes)
+        print(f"Joint move sent:\n{xml_bytes.decode()}")
+        self.cmd_counter += 1
 
     def lin(self, point: Point6D, vel=None, acc=None, base=None, tool=None, blending=None):
         vel, acc, base, tool, blending = self._resolve_motion_params(vel=vel,acc=acc,base=base,tool=tool,blending=blending)

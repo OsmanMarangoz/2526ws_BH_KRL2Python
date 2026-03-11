@@ -1,7 +1,7 @@
 from unittest import case
 import keyboard
 import threading
-from point import Point6D
+from point import Point6D, JointState
 from robot import Robot
 from csvHelper import load_point_csv,save_point_csv,load_all_points_csv
 
@@ -216,7 +216,7 @@ class Command:
         match userInput:
             case 1:
                 print(" PTP Joint selected")
-                # TODO: self.ptpJoint()
+                self.ptpJoint()
 
             case 2:
                 print(" PTP Cartesian selected")
@@ -334,7 +334,46 @@ class Command:
 
 # ------------------------------------------- move subfunctions ---------------------------------------------
     def ptpJoint(self):
-        print("optional")
+        print()
+        print("========== PTP JOINT ==========")
+        print(" Enter joint values: a1 a2 a3 a4 a5 a6")
+        print(" Example: 0 -90 90 0 45 0")
+
+        userInput = self.getUserStringInput()
+        if not userInput:
+            return
+
+        parts = userInput.split()
+        if len(parts) != 6:
+            print(" ERROR: Please enter exactly 6 joint values.")
+            return
+
+        try:
+            a1, a2, a3, a4, a5, a6 = map(float, parts)
+        except ValueError:
+            print(" ERROR: Joint values must be numeric.")
+            return
+
+        joints = JointState(
+            a1=a1,
+            a2=a2,
+            a3=a3,
+            a4=a4,
+            a5=a5,
+            a6=a6
+        )
+
+        vel, acc, base, tool, blending = self.readMotionOverrides()
+
+        print(" Sending PTP Joint move...")
+        self.robot.ptp_joint(
+            joints=joints,
+            vel=vel,
+            acc=acc,
+            base=base,
+            tool=tool,
+            blending=blending
+        )
 
     def ptpCartesian(self):
         print()
@@ -401,7 +440,7 @@ class Command:
             tool=tool,
             blending=blending
         )
-# ------------------------------------------- move sequence subfunctions ----------------------------------------
+# ------------------------------------------- move sequence subfunctions ------------------------------------
     def ptpCartesianSequence(self):
         print()
         print("======= PTP CARTESIAN SEQUENCE =======")
