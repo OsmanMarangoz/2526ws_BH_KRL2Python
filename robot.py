@@ -15,21 +15,21 @@ class Robot(MotionController, MetaController):
         # MetaController initialisieren
         MetaController.__init__(self, metaTransport=self.meta_transport)
 
-        self._connected = False
         self._meta_thread = None
         self._motion_thread = None
 
     def connect(self):
         self.motion_transport.connect()
         self.meta_transport.connect()
-        self._connected = True
 
     def start_receive_threads(self):
+        """
         self._meta_thread = threading.Thread(
             target=self.receive_meta_loop,
             daemon=True
         )
         self._meta_thread.start()
+        """
 
         self._motion_thread = threading.Thread(
             target=self.motion_visualization_loop,
@@ -40,4 +40,3 @@ class Robot(MotionController, MetaController):
     def disconnect(self):
         self.motion_transport.disconnect()
         self.meta_transport.disconnect()
-        self._connected = False

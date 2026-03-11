@@ -24,11 +24,11 @@ if __name__ == "__main__":
         kuka.set_default_velocity(0.1)
         kuka.set_default_base(0)
         kuka.set_default_tool(15)
-
+        
         # -------------------------------------------------
         # 1) PTP zu gespeichertem Punkt
         # -------------------------------------------------
-        p1 = load_point_csv("points.csv", "home")
+        p1 = load_point_csv("points.csv", "H5")
         kuka.ptp(p1)
 
         # -------------------------------------------------
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         end_point = Point6D("end", 200, 300, 300, 0, 90, 0)
 
         kuka.circ(end=end_point, aux=aux_point, vel=0.2)
-
+        
         # -------------------------------------------------
         # 4) Move Sequence
         # mehrere Punkte in einer Übertragung
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
         kuka.move_sequence(
             points=sequence_points,
-            mode="ptp",
+            mode=2,                     # ptp
             vel=0.15
         )
 

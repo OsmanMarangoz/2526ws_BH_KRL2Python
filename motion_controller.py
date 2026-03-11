@@ -6,9 +6,6 @@ import pybullet as p
 import pybullet_data
 import math
 
-
-
-
 class MotionController:
     def __init__(self, motionTransport):
         self.motionTransport = motionTransport
@@ -19,12 +16,12 @@ class MotionController:
         self.default_acceleration = 0.2
         self.default_blending = 0.0
         self.default_base = 0
-        self.default_tool = 0
+        self.default_tool = 15
 
         p.connect(p.GUI)
         p.setGravity(0,0,-9.81)
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
-        urdf_path = r"C:\Users\marce\Downloads\urdf_files_dataset\urdf_files\ros-industrial\xacro_generated\kuka\kuka_kr3_support\urdf\kr3r540.urdf"
+        urdf_path = r"/home/lukas/Dokumente/KRL2Python/kuka/kuka_kr3_support/urdf/kr3r540.urdf"
         self.robotURDF = p.loadURDF(urdf_path, useFixedBase=True)
 
     def _update_command_state(self):
@@ -43,6 +40,15 @@ class MotionController:
                     self.last_finished_id = int(finished_id)
         except Exception:
             pass  # don't crash on parse errors
+
+    def _resolve_motion_params(self, vel=None, acc=None, base=None, tool=None, blending=None):
+        vel = vel if vel is not None else self.default_velocity
+        acc = acc if acc is not None else self.default_acceleration
+        base = base if base is not None else self.default_base
+        tool = tool if tool is not None else self.default_tool
+        blending = blending if blending is not None else self.default_blending
+
+        return vel, acc, base, tool, blending
 
     def set_default_velocity(self, vel: float):
         self.default_velocity = max(0.0, min(vel, 10.0))
@@ -167,9 +173,9 @@ class MotionController:
 
             time.sleep(0.1)
 
-    def _build_move_xml(self, cmd_id: int, point: Point6D, cmd_type: int = 1, mode: int = 1,
-        vel: float = 0.5, acc: float = 0.5, base: int = 0, tool: int = 0, blending: float = 0.0,
-        wait_for_gripper: int = 0,aux_point: Point6D | None = None):
+    def _build_move_xml(self, cmd_id: int, point: Point6D, cmd_type: int, mode: int,
+        vel: float, acc: float, base: int, tool: int, blending: float,
+        wait_for_gripper: int = 0, aux_point: Point6D | None = None):
         root = ET.Element("RobotCommand", Id=str(cmd_id), Type=str(cmd_type))
         move = ET.SubElement(root, "Move",
             Mode=str(mode),
@@ -209,13 +215,14 @@ class MotionController:
         full_message = f'<?xml version="1.0" encoding="UTF-8"?>\n<EthernetKRL>\n{xml_body}\n</EthernetKRL>\n'
         return full_message.encode("utf-8")
 
-    def _send_move(self, point: Point6D, cmd_type, mode, vel, base, tool, blending, aux_point: Point6D | None = None):
+    def _send_move(self, point: Point6D, cmd_type, mode, vel, acc, base, tool, blending, aux_point: Point6D | None = None):
         xml_bytes = self._build_move_xml(
             cmd_id=self.cmd_counter,
             point=point,
             cmd_type=cmd_type,
             mode=mode,
             vel=vel,
+            acc=acc,
             base=base,
             tool=tool,
             blending=blending,
@@ -226,16 +233,9 @@ class MotionController:
         print(f"Move sent:\n{xml_bytes.decode()}")
         self.cmd_counter += 1
 
-    def move_sequence(self, points: list[Point6D], cmd_type: int, mode: int, vel: float,
-                           base: int = 0, tool: int = 0, blending: float = 0.0) -> None:
-        """Build and send a sequence of move commands in one transmission.
+    def move_sequence(self, points: list[Point6D], mode: int, vel=None, acc=None, base=None, tool=None, blending=None) -> None:
+        vel, acc, base, tool, blending = self._resolve_motion_params(vel=vel,acc=acc,base=base,tool=tool,blending=blending)
 
-        Concatenates individual EthernetKRL XML messages for each point and
-        sends the combined bytes in a single call to the transport.
-
-        Ids are assigned incrementally starting from the current cmd_counter.
-        After sending, cmd_counter is advanced by the number of points.
-        """
         if not points:
             print("No points provided for sequence.")
             return
@@ -246,9 +246,10 @@ class MotionController:
             xml_bytes = self._build_move_xml(
                 cmd_id=next_id,
                 point=p,
-                cmd_type=cmd_type,
+                cmd_type=1,
                 mode=mode,
                 vel=vel,
+                acc=acc,
                 base=base,
                 tool=tool,
                 blending=blending
@@ -261,49 +262,43 @@ class MotionController:
         print(f"Sequence sent with {len(points)} moves. Total bytes: {len(payload)}")
         self.cmd_counter = next_id
 
-    def ptp(self, point: Point6D, vel=None, base=None, tool=None, blending=None):
-        vel = vel if vel is not None else self.default_velocity
-        base = base if base is not None else self.default_base
-        tool = tool if tool is not None else self.default_tool
-        blending = blending if blending is not None else self.default_blending
+    def ptp(self, point: Point6D, vel=None, acc=None, base=None, tool=None, blending=None):
+        vel, acc, base, tool, blending = self._resolve_motion_params(vel=vel,acc=acc,base=base,tool=tool,blending=blending)
 
         self._send_move(
             point=point,
             cmd_type=1,
             mode=2,
             vel=vel,
+            acc=acc,
             base=base,
             tool=tool,
             blending=blending
         )
 
-    def lin(self, point: Point6D, vel=None, base=None, tool=None, blending=None):
-        vel = vel if vel is not None else self.default_velocity
-        base = base if base is not None else self.default_base
-        tool = tool if tool is not None else self.default_tool
-        blending = blending if blending is not None else self.default_blending
+    def lin(self, point: Point6D, vel=None, acc=None, base=None, tool=None, blending=None):
+        vel, acc, base, tool, blending = self._resolve_motion_params(vel=vel,acc=acc,base=base,tool=tool,blending=blending)
 
         self._send_move(
             point=point,
             cmd_type=1,
             mode=3,
             vel=vel,
+            acc=acc,
             base=base,
             tool=tool,
             blending=blending
         )
 
-    def circ(self, end: Point6D, aux: Point6D, vel=None, base=None, tool=None, blending=None):
-        vel = vel if vel is not None else self.default_velocity
-        base = base if base is not None else self.default_base
-        tool = tool if tool is not None else self.default_tool
-        blending = blending if blending is not None else self.default_blending
+    def circ(self, end: Point6D, aux: Point6D, vel=None, acc=None, base=None, tool=None, blending=None):
+        vel, acc, base, tool, blending = self._resolve_motion_params(vel=vel,acc=acc,base=base,tool=tool,blending=blending)
 
         self._send_move(
             point=end,
             cmd_type=1,
             mode=6,
             vel=vel,
+            acc=acc,
             base=base,
             tool=tool,
             blending=blending,
