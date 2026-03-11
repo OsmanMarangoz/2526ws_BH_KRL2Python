@@ -10,11 +10,16 @@ import math
 
 
 class MotionController:
-      
     def __init__(self, motionTransport):
         self.motionTransport = motionTransport
         self.cmd_counter = 0
         self.last_finished_id = 0
+
+        self.default_velocity = 0.2
+        self.default_acceleration = 0.2
+        self.default_blending = 0.0
+        self.default_base = 0
+        self.default_tool = 0
 
         p.connect(p.GUI)
         p.setGravity(0,0,-9.81)
@@ -38,6 +43,21 @@ class MotionController:
                     self.last_finished_id = int(finished_id)
         except Exception:
             pass  # don't crash on parse errors
+
+    def set_default_velocity(self, vel: float):
+        self.default_velocity = max(0.0, min(vel, 10.0))
+
+    def set_default_acceleration(self, acc: float):
+        self.default_acceleration = acc
+
+    def set_default_blending(self, blending: float):
+        self.default_blending = blending
+
+    def set_default_base(self, base: int):
+        self.default_base = base
+
+    def set_default_tool(self, tool: int):
+        self.default_tool = tool
 
     def get_current_Point6D(self, name: str) -> Point6D:
 
@@ -206,7 +226,7 @@ class MotionController:
         print(f"Move sent:\n{xml_bytes.decode()}")
         self.cmd_counter += 1
 
-    def _send_move_sequence(self, points: list[Point6D], cmd_type: int, mode: int, vel: float,
+    def move_sequence(self, points: list[Point6D], cmd_type: int, mode: int, vel: float,
                            base: int = 0, tool: int = 0, blending: float = 0.0) -> None:
         """Build and send a sequence of move commands in one transmission.
 
@@ -241,16 +261,54 @@ class MotionController:
         print(f"Sequence sent with {len(points)} moves. Total bytes: {len(payload)}")
         self.cmd_counter = next_id
 
-    def ptp(self, point: Point6D, vel, base=0, tool=0, blending=0.0):
-        self._send_move(point, cmd_type=1, mode=2, vel=vel, base=base, tool=tool, blending=blending)
+    def ptp(self, point: Point6D, vel=None, base=None, tool=None, blending=None):
+        vel = vel if vel is not None else self.default_velocity
+        base = base if base is not None else self.default_base
+        tool = tool if tool is not None else self.default_tool
+        blending = blending if blending is not None else self.default_blending
 
-    def lin(self, point: Point6D, vel, base=0, tool=0, blending=0.0):
-        self._send_move(point, cmd_type=1, mode=3, vel=vel, base=base, tool=tool, blending=blending)
+        self._send_move(
+            point=point,
+            cmd_type=1,
+            mode=2,
+            vel=vel,
+            base=base,
+            tool=tool,
+            blending=blending
+        )
 
+    def lin(self, point: Point6D, vel=None, base=None, tool=None, blending=None):
+        vel = vel if vel is not None else self.default_velocity
+        base = base if base is not None else self.default_base
+        tool = tool if tool is not None else self.default_tool
+        blending = blending if blending is not None else self.default_blending
 
-    # hier war mode = 4 zuvor gesetzt
-    def circ(self,end: Point6D, aux: Point6D, vel, base=0, tool=0, blending=0.0):
-        self._send_move(point= end, cmd_type=1, mode=6, vel=vel, base=base, tool=tool, blending=blending, aux_point=aux)
+        self._send_move(
+            point=point,
+            cmd_type=1,
+            mode=3,
+            vel=vel,
+            base=base,
+            tool=tool,
+            blending=blending
+        )
+
+    def circ(self, end: Point6D, aux: Point6D, vel=None, base=None, tool=None, blending=None):
+        vel = vel if vel is not None else self.default_velocity
+        base = base if base is not None else self.default_base
+        tool = tool if tool is not None else self.default_tool
+        blending = blending if blending is not None else self.default_blending
+
+        self._send_move(
+            point=end,
+            cmd_type=1,
+            mode=6,
+            vel=vel,
+            base=base,
+            tool=tool,
+            blending=blending,
+            aux_point=aux
+        )
 
     # ==================== GRIPPER METHODS ====================
 

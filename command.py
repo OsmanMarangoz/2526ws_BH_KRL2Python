@@ -1,6 +1,6 @@
 from unittest import case
 import keyboard
-import time
+import threading
 from point import Point6D
 from robot import Robot
 from csvHelper import load_point_csv,save_point_csv,load_all_points_csv
@@ -11,6 +11,9 @@ class Command:
 
     def __init__(self, robot):
         self.robot = robot
+        self._safety_thread = None
+        self._motion_thread = None
+
         self.commandMode = CommandMode.CHANGEMODE
         self.override = 1.0
         self.tool = 0
@@ -41,7 +44,25 @@ class Command:
         keyboard.add_hotkey("+", lambda: self.setOverride(self.override +10))
         keyboard.add_hotkey("-", lambda: self.setOverride(self.override -10))
 # -----------------------------------------------------------------------------------------------------------
+    def start_safety_thread(self):
+        if self._safety_thread is not None and self._safety_thread.is_alive():
+            return
 
+        self._safety_thread = threading.Thread(
+            target=self.safetyLoop,
+            daemon=True
+        )
+        self._safety_thread.start()
+
+    def start_motion_thread(self):
+        if self._motion_thread is not None and self._motion_thread.is_alive():
+            return
+
+        self._motion_thread = threading.Thread(
+            target=self.loop,
+            daemon=True
+        )
+        self._motion_thread.start()
 # -------------------------------------------- user input ---------------------------------------------------
     def getUserIntegerInput(self) -> int | None:
         userInput = input(" >> ").strip()
