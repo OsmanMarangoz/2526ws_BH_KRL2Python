@@ -5,7 +5,14 @@ from point import Point6D
 from robot import Robot
 from csvHelper import load_point_csv,save_point_csv,load_all_points_csv
 
-from commandMode import CommandMode
+from enum import Enum
+
+class CommandMode(Enum):
+    MOVE = 1
+    GRIP = 2
+    SAVEPOINT = 3
+    SETTINGS = 4
+    CHANGEMODE = 9
 
 class Command:
 
@@ -15,12 +22,8 @@ class Command:
         self._motion_thread = None
 
         self.commandMode = CommandMode.CHANGEMODE
-        self.override = 1.0
-        self.tool = 0
-        self.base = 0
-        self.velocity = 0.2
-        self.acceleration = 0.2
-        self.blending = 0.0
+
+        self.override = 100
         self.fileName = "points.csv"
 
 # ------------------------------------------- Loops for threading -------------------------------------------
@@ -63,7 +66,7 @@ class Command:
             daemon=True
         )
         self._motion_thread.start()
-# -------------------------------------------- user input ---------------------------------------------------
+# -------------------------------------------- helper -------------------------------------------------------
     def getUserIntegerInput(self) -> int | None:
         userInput = input(" >> ").strip()
 
@@ -91,6 +94,74 @@ class Command:
             return None
         else:
             return userInput
+
+    def getOptionalFloatInput(self, prompt: str = " >> ") -> float | None:
+        userInput = input(prompt).strip()
+        if userInput == "":
+            return None
+        try:
+            return float(userInput)
+        except ValueError:
+            print(" ERROR: Input must be a valid number!")
+            return None
+
+    def getOptionalIntegerInput(self, prompt: str = " >> ") -> int | None:
+        userInput = input(prompt).strip()
+        if userInput == "":
+            return None
+        try:
+            return int(userInput)
+        except ValueError:
+            print(" ERROR: Input must be a valid integer!")
+            return None
+
+    def readPointInput(self) -> Point6D | None:
+        print(" Enter a point name OR manual values:")
+        print(" Format for manual input: x y z a b c")
+
+        userInput = self.getUserStringInput()
+        if not userInput:
+            return None
+
+        parts = userInput.split()
+
+        if len(parts) == 6:
+            try:
+                x, y, z, a, b, c = map(float, parts)
+                return Point6D(
+                    name="manual_input",
+                    x=x, y=y, z=z,
+                    a=a, b=b, c=c
+                )
+            except ValueError:
+                print(" ERROR: Manual input must contain only numeric values!")
+                return None
+
+        try:
+            point = load_point_csv(self.fileName, userInput)
+            print(f" Point '{point.name}' loaded from CSV.")
+            return point
+        except Exception as e:
+            print(f" ERROR while loading point: {e}")
+            return None
+
+    def readMotionOverrides(self):
+        print(f" Velocity [{self.robot.default_velocity}] (Enter = default):")
+        vel = self.getOptionalFloatInput()
+
+        print(f" Acceleration [{self.robot.default_acceleration}] (Enter = default):")
+        acc = self.getOptionalFloatInput()
+
+        print(f" Blending [{self.robot.default_blending}] (Enter = default):")
+        blending = self.getOptionalFloatInput()
+
+        print(f" Base [{self.robot.default_base}] (Enter = default):")
+        base = self.getOptionalIntegerInput()
+
+        print(f" Tool [{self.robot.default_tool}] (Enter = default):")
+        tool = self.getOptionalIntegerInput()
+
+        return vel, acc, base, tool, blending
 # -----------------------------------------------------------------------------------------------------------
 
 # --------------------------------------------- override ----------------------------------------------------
@@ -98,7 +169,6 @@ class Command:
         value = max(0, min(100, value))
         self.override = value
         self.robot.set_override(value)
-
 # -----------------------------------------------------------------------------------------------------------
 
 # --------------------------------------------- functions ---------------------------------------------------
@@ -136,7 +206,8 @@ class Command:
         print(" 2 - PTP Cartesian")
         print(" 3 - LIN")
         print(" 4 - CIRC")
-        print(" 5 - Move in Sequence")
+        print(" 5 - Move in Sequence [PTP]")
+        print(" 6 - Move in Sequence [LIN]")
         print(" 9 - Change Mode")
         print("====================================")
 
@@ -158,9 +229,14 @@ class Command:
             case 4:
                 print(" CIRC selected")
                 self.circ()
+
             case 5:
-                print(" Move in Sequence selected")
+                print(" Move in Sequence [PTP] selected")
                 self.ptpCartesianSequence()
+
+            case 6:
+                print(" Move in Sequence [LIN] selected")
+                self.linSequence()
 
             case 9:
                 print(" Change Mode selected")
@@ -197,7 +273,6 @@ class Command:
 
             case _:
                 print(" ERROR: Invalid option!")
-
 
     def savePoint(self):
         print()
@@ -259,205 +334,85 @@ class Command:
 
 # ------------------------------------------- move subfunctions ---------------------------------------------
     def ptpJoint(self):
-        print("tbd")
+        print("optional")
 
     def ptpCartesian(self):
         print()
         print("======= PTP CARTESIAN =======")
-        print(" Enter a point name OR manual values:")
-        print(" Format for manual input: x y z a b c")
-        print(" Example: 100 200 300 0 90 180")
 
-        userInput = self.getUserStringInput()
-
-        if not userInput:
-            print(" ERROR: Input must not be empty!")
+        point = self.readPointInput()
+        if point is None:
             return
 
-        tempPoint = None
-
-        # -----------------------------
-        # 1) Manual Input
-        # -----------------------------
-        parts = userInput.split()
-        if len(parts) == 6:
-            try:
-                x = float(parts[0])
-                y = float(parts[1])
-                z = float(parts[2])
-                a = float(parts[3])
-                b = float(parts[4])
-                c = float(parts[5])
-
-                tempPoint = Point6D(
-                    name="manual_input",
-                    x=x, y=y, z=z,
-                    a=a, b=b, c=c)
-
-                print(" Manual point accepted.")
-            except ValueError:
-                print(" ERROR: Manual input must contain only numeric values!")
-                return
-
-        # -----------------------------
-        # 2) CSV-Point
-        # -----------------------------
-        else:
-            try:
-                tempPoint : Point6D = load_point_csv(self.fileName, userInput)
-                print(f" Point '{tempPoint.name}' loaded from CSV.")
-            except KeyError as e:
-                print(f" ERROR: {e}")
-                return
-            except Exception as e:
-                print(f" ERROR while loading point: {e}")
-                return
-
-        # -----------------------------
-        # 3) Velocity Input
-        # -----------------------------
-        print(" Enter velocity (0.0 - 10.0):")
-        userInput = self.getUserStringInput()
-        try:
-            vel = float(userInput)
-            if not 0.0 <= vel <= 10.0:
-                raise ValueError
-        except ValueError:
-            print(f" ERROR: Invalid velocity! Using global velocity '{self.velocity}'")
-            vel = self.velocity
-
-        # -----------------------------
+        vel, acc, base, tool, blending = self.readMotionOverrides()
 
         print(" Sending PTP Cartesian move...")
         self.robot.ptp(
-            point=tempPoint,
+            point=point,
             vel=vel,
-            base=self.base,
-            tool=self.tool,
-            blending=self.blending
+            acc=acc,
+            base=base,
+            tool=tool,
+            blending=blending
         )
 
     def lin(self):
         print()
         print("============ LIN ============")
-        print(" Enter a point name OR manual values:")
-        print(" Format for manual input: x y z a b c")
-        print(" Example: 100 200 300 0 90 180")
 
-        userInput = self.getUserStringInput()
-
-        if not userInput:
-            print(" ERROR: Input must not be empty!")
+        point = self.readPointInput()
+        if point is None:
             return
 
-        tempPoint = None
-
-        # -----------------------------
-        # 1) Manual Input
-        # -----------------------------
-        parts = userInput.split()
-        if len(parts) == 6:
-            try:
-                x = float(parts[0])
-                y = float(parts[1])
-                z = float(parts[2])
-                a = float(parts[3])
-                b = float(parts[4])
-                c = float(parts[5])
-
-                tempPoint = Point6D(
-                    name="manual_input",
-                    x=x, y=y, z=z,
-                    a=a, b=b, c=c)
-
-                print(" Manual point accepted.")
-            except ValueError:
-                print(" ERROR: Manual input must contain only numeric values!")
-                return
-
-        # -----------------------------
-        # 2) CSV-Point
-        # -----------------------------
-        else:
-            try:
-                tempPoint : Point6D = load_point_csv(self.fileName, userInput)
-                print(f" Point '{tempPoint.name}' loaded from CSV.")
-            except KeyError as e:
-                print(f" ERROR: {e}")
-                return
-            except Exception as e:
-                print(f" ERROR while loading point: {e}")
-                return
-
-        # -----------------------------
-        # 3) Velocity Input
-        # -----------------------------
-        print(" Enter velocity (0.0 - 10.0):")
-        userInput = self.getUserStringInput()
-        try:
-            vel = float(userInput)
-            if not 0.0 <= vel <= 10.0:
-                raise ValueError
-        except ValueError:
-            print(f" ERROR: Invalid velocity! Using global velocity '{self.velocity}'")
-            vel = self.velocity
-
-        # -----------------------------
+        vel, acc, base, tool, blending = self.readMotionOverrides()
 
         print(" Sending LIN move...")
         self.robot.lin(
-            point=tempPoint,
+            point=point,
             vel=vel,
-            base=self.base,
-            tool=self.tool,
-            blending=self.blending
+            acc=acc,
+            base=base,
+            tool=tool,
+            blending=blending
         )
 
     def circ(self):
         print()
         print("============ CIRC ============")
-        print(" Enter AUX point name:")
-        aux_name = self.getUserStringInput()
-
-        print(" Enter END point name:")
-        end_name = self.getUserStringInput()
-
-        try:
-            auxPoint = load_point_csv(self.fileName, aux_name)
-            endPoint = load_point_csv(self.fileName, end_name)
-        except Exception as e:
-            print(f" ERROR: {e}")
+        print(" Enter AUX point name OR manual values:")
+        auxPoint = self.readPointInput()
+        if auxPoint is None:
             return
 
-        print(" Enter velocity (0.0 - 10.0):")
-        userInput = self.getUserStringInput()
+        print(" Enter END point name OR manual values:")
+        endPoint = self.readPointInput()
+        if endPoint is None:
+            return
 
-        try:
-            vel = float(userInput)
-        except:
-            vel = self.velocity
+        vel, acc, base, tool, blending = self.readMotionOverrides()
 
         print(" Sending CIRC move...")
-
         self.robot.circ(
             end=endPoint,
             aux=auxPoint,
             vel=vel,
-            base=self.base,
-            tool=self.tool,
-            blending=self.blending
+            acc=acc,
+            base=base,
+            tool=tool,
+            blending=blending
         )
-    
-    # ------------------------------------------- move sequence subfunctions ----------------------------------------
-
+# ------------------------------------------- move sequence subfunctions ----------------------------------------
     def ptpCartesianSequence(self):
         print()
         print("======= PTP CARTESIAN SEQUENCE =======")
         print(" Choose CSV file:")
+
+        available_csv = []
         try:
             from pathlib import Path
             csv_dir = Path(__file__).resolve().parent
             available_csv = sorted([p.name for p in csv_dir.glob("*.csv")])
+
             if available_csv:
                 print(" Available CSV files:")
                 for idx, name in enumerate(available_csv, start=1):
@@ -468,26 +423,24 @@ class Command:
             print(f" WARNING: Could not list CSV files automatically: {e}")
 
         print(f" Default: {self.fileName}")
-        csv_choice = self.getUserStringInput()
+        csv_choice = input(" >> ").strip()
+
         chosen_file = self.fileName
         if csv_choice:
-            # If user entered a number, select from list; otherwise treat as filename
-            if csv_choice.isdigit() and 'available_csv' in locals() and available_csv:
+            if csv_choice.isdigit() and available_csv:
                 idx = int(csv_choice)
                 if 1 <= idx <= len(available_csv):
                     chosen_file = available_csv[idx - 1]
                 else:
                     print(" ERROR: Invalid selection number. Using default.")
             else:
-                # Accept raw filename; add .csv if missing
-                if not csv_choice.endswith('.csv'):
-                    csv_choice += '.csv'
+                if not csv_choice.endswith(".csv"):
+                    csv_choice += ".csv"
                 chosen_file = csv_choice
 
         print(f" Loading & Sequencing all points from '{chosen_file}' ...")
 
         try:
-            # Liste von Punkten aus der CSV laden
             points = load_all_points_csv(chosen_file)
             if not points:
                 print(" ERROR: No points found in CSV.")
@@ -497,26 +450,78 @@ class Command:
             print(f" ERROR while loading points: {e}")
             return
 
-        print(" Enter velocity (0.0 - 10.0):")
-        userInput = self.getUserStringInput()
-        try:
-            vel = float(userInput)
-            if not 0.0 <= vel <= 10.0:
-                raise ValueError
-        except ValueError:
-            print(f" ERROR: Invalid velocity! Using global velocity '{self.velocity}'")
-            vel = self.velocity
+        vel, acc, base, tool, blending = self.readMotionOverrides()
 
         print(" Sending PTP Cartesian sequence...")
-        # Liste von Points wird, in eine XML string Zusammengefuegt umgewandelt und gesendet
-        self.robot._send_move_sequence(
+        self.robot.move_sequence(
             points=points,
-            cmd_type=1,
+            mode=2,
+            vel=vel,
+            acc=acc,
+            base=base,
+            tool=tool,
+            blending=blending
+        )
+
+    def linSequence(self):
+        print()
+        print("======= LIN SEQUENCE =======")
+        print(" Choose CSV file:")
+
+        available_csv = []
+        try:
+            from pathlib import Path
+            csv_dir = Path(__file__).resolve().parent
+            available_csv = sorted([p.name for p in csv_dir.glob("*.csv")])
+
+            if available_csv:
+                print(" Available CSV files:")
+                for idx, name in enumerate(available_csv, start=1):
+                    print(f"  {idx}. {name}")
+            else:
+                print(" No CSV files found in project folder; default=points.csv will be used.")
+        except Exception as e:
+            print(f" WARNING: Could not list CSV files automatically: {e}")
+
+        print(f" Default: {self.fileName}")
+        csv_choice = input(" >> ").strip()
+
+        chosen_file = self.fileName
+        if csv_choice:
+            if csv_choice.isdigit() and available_csv:
+                idx = int(csv_choice)
+                if 1 <= idx <= len(available_csv):
+                    chosen_file = available_csv[idx - 1]
+                else:
+                    print(" ERROR: Invalid selection number. Using default.")
+            else:
+                if not csv_choice.endswith(".csv"):
+                    csv_choice += ".csv"
+                chosen_file = csv_choice
+
+        print(f" Loading & Sequencing all points from '{chosen_file}' ...")
+
+        try:
+            points = load_all_points_csv(chosen_file)
+            if not points:
+                print(" ERROR: No points found in CSV.")
+                return
+            print(f" Loaded {len(points)} points.")
+        except Exception as e:
+            print(f" ERROR while loading points: {e}")
+            return
+
+        vel, acc, base, tool, blending = self.readMotionOverrides()
+
+        print(" Sending PTP Cartesian sequence...")
+        self.robot.move_sequence(
+            points=points,
             mode=3,
             vel=vel,
-            base=self.base,
-            tool=self.tool,
-            blending=self.blending
+            acc=acc,
+            base=base,
+            tool=tool,
+            blending=blending
         )
 # -----------------------------------------------------------------------------------------------------------
 
@@ -572,37 +577,41 @@ class Command:
             print(f" Coordinates: x={x}, y={y}, z={z}, a={a}, b={b}, c={c}")
         except Exception as e:
             print(f" ERROR saving point: {e}")
-
 # -----------------------------------------------------------------------------------------------------------
 
 # ------------------------------------------- settings subfunctions -----------------------------------------
     def setTool(self):
+        print(f" Tool [{self.robot.default_tool}]")
         val = self.getUserIntegerInput()
         if val is not None:
-            self.tool = val
-            print(f" Tool set to {self.tool}")
+            self.robot.set_default_tool(val)
+            print(f" Set to Tool [{self.robot.default_tool}]")
 
     def setBase(self):
+        print(f" Base [{self.robot.default_base}]")
         val = self.getUserIntegerInput()
         if val is not None:
-            self.base = val
-            print(f" Base set to {self.base}")
+            self.robot.set_default_base(val)
+            print(f" Set to Base [{self.robot.default_base}]")
 
     def setVelocity(self):
+        print(f" Velocity [{self.robot.default_velocity}]")
         val = self.getUserFloatInput()
         if val is not None:
-            self.velocity = max(0.0, min(val, 10.0))
-            print(f" Velocity set to {self.velocity}")
+            self.robot.set_default_velocity(val)
+            print(f" Set to Velocity [{self.robot.default_velocity}]")
 
     def setAcceleration(self):
+        print(f" Acceleration [{self.robot.default_acceleration}]")
         val = self.getUserFloatInput()
         if val is not None:
-            self.acceleration = val
-            print(f" Acceleration set to {self.acceleration}")
+            self.robot.set_default_acceleration(val)
+            print(f" Set to Acceleration [{self.robot.default_acceleration}]")
 
     def setBlending(self):
+        print(f" Blending [{self.robot.default_blending}]")
         val = self.getUserFloatInput()
         if val is not None:
-            self.blending = val
-            print(f" Blending set to {self.blending}")
+            self.robot.set_default_blending(val)
+            print(f" Set to Blending [{self.robot.default_blending}]")
 # -----------------------------------------------------------------------------------------------------------
