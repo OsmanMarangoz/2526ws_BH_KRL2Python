@@ -3,7 +3,6 @@ from csvHelper import init_csv, save_point_csv, load_point_csv
 from point import Point6D, JointState
 import time
 import pybullet as p
-import pybullet_data
 import math
 from pathlib import Path
 
@@ -21,9 +20,9 @@ class MotionController:
 
         p.connect(p.GUI)
         p.setGravity(0,0,-9.81)
-        p.setAdditionalSearchPath(pybullet_data.getDataPath())
         project_root = Path(__file__).resolve().parents[1]
-        urdf_path = str(project_root / "urdf" / "kr3r540.urdf")
+        p.setAdditionalSearchPath(str(project_root))
+        urdf_path = str(project_root / "kuka_kr3_support" / "urdf" / "kr3r540.urdf")
         self.robotURDF = p.loadURDF(urdf_path, useFixedBase=True)
 
     def _update_command_state(self):

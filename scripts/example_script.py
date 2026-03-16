@@ -1,5 +1,11 @@
 from time import sleep
 from pathlib import Path
+import sys
+
+project_root = Path(__file__).resolve().parents[1]
+src_dir = project_root / "src"
+if str(src_dir) not in sys.path:
+    sys.path.insert(0, str(src_dir))
 
 from robot import Robot
 from command import Command
@@ -7,8 +13,6 @@ from point import Point6D
 from csvHelper import load_all_points_csv, load_point_csv
 
 if __name__ == "__main__":
-
-    project_root = Path(__file__).resolve().parents[1]
     database_dir = project_root / "database"
 
     KUKA_IP = "10.181.116.51"
