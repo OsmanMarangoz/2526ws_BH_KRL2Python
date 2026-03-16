@@ -1,4 +1,3 @@
-from unittest import case
 import keyboard
 import threading
 from point import Point6D, JointState
@@ -6,6 +5,7 @@ from robot import Robot
 from csvHelper import load_point_csv,save_point_csv,load_all_points_csv
 
 from enum import Enum
+from pathlib import Path
 
 class CommandMode(Enum):
     MOVE = 1
@@ -24,7 +24,9 @@ class Command:
         self.commandMode = CommandMode.CHANGEMODE
 
         self.override = 100
-        self.fileName = "points.csv"
+        project_root = Path(__file__).resolve().parents[1]
+        self.csv_dir = project_root / "database"
+        self.fileName = str(self.csv_dir / "points.csv")
 
 # ------------------------------------------- Loops for threading -------------------------------------------
     def loop(self):
@@ -446,10 +448,9 @@ class Command:
         print("======= PTP CARTESIAN SEQUENCE =======")
         print(" Choose CSV file:")
 
+        csv_dir = self.csv_dir
         available_csv = []
         try:
-            from pathlib import Path
-            csv_dir = Path(__file__).resolve().parent
             available_csv = sorted([p.name for p in csv_dir.glob("*.csv")])
 
             if available_csv:
@@ -457,7 +458,7 @@ class Command:
                 for idx, name in enumerate(available_csv, start=1):
                     print(f"  {idx}. {name}")
             else:
-                print(" No CSV files found in project folder; default=points.csv will be used.")
+                print(" No CSV files found in database folder; default=points.csv will be used.")
         except Exception as e:
             print(f" WARNING: Could not list CSV files automatically: {e}")
 
@@ -469,13 +470,13 @@ class Command:
             if csv_choice.isdigit() and available_csv:
                 idx = int(csv_choice)
                 if 1 <= idx <= len(available_csv):
-                    chosen_file = available_csv[idx - 1]
+                    chosen_file = str(csv_dir / available_csv[idx - 1])
                 else:
                     print(" ERROR: Invalid selection number. Using default.")
             else:
                 if not csv_choice.endswith(".csv"):
                     csv_choice += ".csv"
-                chosen_file = csv_choice
+                chosen_file = str(csv_dir / csv_choice)
 
         print(f" Loading & Sequencing all points from '{chosen_file}' ...")
 
@@ -507,10 +508,9 @@ class Command:
         print("======= LIN SEQUENCE =======")
         print(" Choose CSV file:")
 
+        csv_dir = self.csv_dir
         available_csv = []
         try:
-            from pathlib import Path
-            csv_dir = Path(__file__).resolve().parent
             available_csv = sorted([p.name for p in csv_dir.glob("*.csv")])
 
             if available_csv:
@@ -518,7 +518,7 @@ class Command:
                 for idx, name in enumerate(available_csv, start=1):
                     print(f"  {idx}. {name}")
             else:
-                print(" No CSV files found in project folder; default=points.csv will be used.")
+                print(" No CSV files found in database folder; default=points.csv will be used.")
         except Exception as e:
             print(f" WARNING: Could not list CSV files automatically: {e}")
 
@@ -530,13 +530,13 @@ class Command:
             if csv_choice.isdigit() and available_csv:
                 idx = int(csv_choice)
                 if 1 <= idx <= len(available_csv):
-                    chosen_file = available_csv[idx - 1]
+                    chosen_file = str(csv_dir / available_csv[idx - 1])
                 else:
                     print(" ERROR: Invalid selection number. Using default.")
             else:
                 if not csv_choice.endswith(".csv"):
                     csv_choice += ".csv"
-                chosen_file = csv_choice
+                chosen_file = str(csv_dir / csv_choice)
 
         print(f" Loading & Sequencing all points from '{chosen_file}' ...")
 

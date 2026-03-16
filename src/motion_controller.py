@@ -5,6 +5,7 @@ import time
 import pybullet as p
 import pybullet_data
 import math
+from pathlib import Path
 
 class MotionController:
     def __init__(self, motionTransport):
@@ -21,7 +22,8 @@ class MotionController:
         p.connect(p.GUI)
         p.setGravity(0,0,-9.81)
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
-        urdf_path = r"/home/lukas/Dokumente/KRL2Python/kuka/kuka_kr3_support/urdf/kr3r540.urdf"
+        project_root = Path(__file__).resolve().parents[1]
+        urdf_path = str(project_root / "urdf" / "kr3r540.urdf")
         self.robotURDF = p.loadURDF(urdf_path, useFixedBase=True)
 
     def _update_command_state(self):
@@ -121,7 +123,7 @@ class MotionController:
                 a6 = float(joint.get("A6"))
             )
             return jointState
-        
+
         except ET.ParseError:
             print(" ERROR: Failed to parse RobotState XML!")
             return None
@@ -143,7 +145,7 @@ class MotionController:
                     break
 
                 self.lastMotionPacket = data
-                self._update_command_state()    
+                self._update_command_state()
 
                 joint_angles_deg = self.get_current_joint_state()
                 if joint_angles_deg is None:

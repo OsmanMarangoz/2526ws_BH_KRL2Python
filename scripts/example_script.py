@@ -1,4 +1,5 @@
 from time import sleep
+from pathlib import Path
 
 from robot import Robot
 from command import Command
@@ -6,6 +7,9 @@ from point import Point6D
 from csvHelper import load_all_points_csv, load_point_csv
 
 if __name__ == "__main__":
+
+    project_root = Path(__file__).resolve().parents[1]
+    database_dir = project_root / "database"
 
     KUKA_IP = "10.181.116.51"
     KUKA_PORT_META = 54601
@@ -24,11 +28,11 @@ if __name__ == "__main__":
         kuka.set_default_velocity(0.1)
         kuka.set_default_base(0)
         kuka.set_default_tool(15)
-        
+
         # -------------------------------------------------
         # 1) PTP zu gespeichertem Punkt
         # -------------------------------------------------
-        p1 = load_point_csv("points.csv", "H5")
+        p1 = load_point_csv(str(database_dir / "points.csv"), "H5")
         kuka.ptp(p1)
 
         # -------------------------------------------------
@@ -46,12 +50,12 @@ if __name__ == "__main__":
         end_point = Point6D("end", 200, 300, 300, 0, 90, 0)
 
         kuka.circ(end=end_point, aux=aux_point, vel=0.2)
-        
+
         # -------------------------------------------------
         # 4) Move Sequence
         # mehrere Punkte in einer Übertragung
         # -------------------------------------------------
-        sequence_points = load_all_points_csv("sequence_points.csv")
+        sequence_points = load_all_points_csv(str(database_dir / "sequence_points.csv"))
 
         kuka.move_sequence(
             points=sequence_points,
