@@ -1,39 +1,117 @@
 # Tutorial to set up KUKA KR3 for 2526ws_BH_KRL2Python
+> [!NOTE]
+> Dieses Projekt steuert einen KUKA-Roboter aus Python über zwei TCP-Kanäle (Motion + Meta) und visualisiert die Gelenkzustände in PyBullet.
 
 > [!NOTE]
-> This project controls a KUKA robot from Python via two TCP channels (motion + meta) and visualizes joint states in PyBullet.
+> Das Repository ist für einen KR3 R540 vorkonfiguriert und kann durch Anpassung von IP-Adressen, Ports und Punktdaten auf andere Setups übertragen werden.
 
-> [!NOTE]
-> The repository is configured for a KR3 R540 setup and can be adapted to other KUKA setups by changing IP/ports and point data.
+---
 
-## First Time Setup - Ubuntu PC
+## Voraussetzungen
+- Python 3.10 oder neuer
+- Conda (Miniconda oder Anaconda)
+- Netzwerkzugriff auf den KUKA Controller
+- GUI/OpenGL-Unterstützung (für PyBullet)
 
-1. Clone this repository and open it in VS Code.
-2. Ensure Python 3.10+ is available.
-3. Install dependencies:
+---
 
-	 ```bash
-	 python -m pip install pybullet keyboard
-	 ```
+## Einrichtung – Python Umgebung
 
-4. Verify that the machine has GUI/OpenGL access (PyBullet uses GUI mode).
-5. Connect the Ubuntu PC to the robot network.
-6. Configure your network interface with a compatible static IP in the robot subnet.
+### 1. Repository klonen
+```bash
+git clone <repository-url>
+cd <repository-name>
+```
 
-## First Time Setup - Project Configuration
+### 2. Conda Environment erstellen
+```bash
+conda create -n kuka_env python=3.10
+conda activate kuka_env
+```
 
-1. Check robot connection constants in:
-	 - `src/Main.py`
-	 - `scripts/example_script.py`
-	 - `scripts/example_script copy.py`
-2. Default values in this project are:
-	 - Robot IP: `10.181.116.51`
-	 - Meta port: `54601`
-	 - Motion port: `54602`
-3. If your robot/controller differs, update these constants before running.
+### 3. Abhängigkeiten installieren
+```bash
+pip install -r requirements.txt
+```
 
-## Start Hardware Interface on Robot
+### 4. ggf. PyBullet überprüfen - tbd
 
+---
+
+## Einrichtung - Netzwerkkonfiguration
+Vor dem ersten Start müssen die Verbindungsparameter zum Roboter überprüft und ggf. angepasst werden.
+
+### 1. Relevante Dateien
+Überprüfe die Verbindungseinstellungen in folgenden Dateien:
+- `src/Main.py`
+- `scripts/example_script.py`
+  
+### 2. Standardwerte im Projekt
+Dieses Projekt verwendet standardmäßig folgende Konfiguration:
+- Robot IP: `10.181.116.51`
+- Meta Port: `54601`
+- Motion Port: `54602`
+  
+### 3. Anpassung der Parameter
+Falls dein Roboter oder Netzwerk davon abweicht, müssen IP-Adresse und Ports entsprechend angepasst werden.
+In den oben genannten Dateien:
+
+```python
+ROBOT_IP = "10.xxx.xxx.xxx"
+META_PORT = XXXX
+MOTION_PORT = XXXX
+```
+- **ROBOT_IP** → IP-Adresse des KUKA Controllers  
+- **META_PORT** → Port für Meta-Kommunikation  
+- **MOTION_PORT** → Port für Motion-Kommunikation/ Bewegungsbefehle  
+
+> ⚠️ Die Portnummern müssen mit der Konfiguration auf der KUKA-Seite übereinstimmen.
+
+### 4. IP-Konfiguration im Roboternetzwerk
+Damit die Kommunikation funktioniert, müssen sich **Roboter und Laptop im selben Netzwerk (Subnetz)** befinden.
+- Der Roboter besitzt eine feste IP-Adresse (z. B. `10.181.116.51`)
+- Der Laptop muss eine freie IP-Adresse im gleichen Netzwerk erhalten
+
+#### Beispiel:
+
+| Gerät    | IP-Adresse        |
+|----------|------------------|
+| Roboter  | 10.181.116.51    |
+| Laptop   | 10.181.116.100   |
+
+> ⚠️ Wichtig:
+> - Die ersten drei Blöcke müssen identisch sein (z. B. `10.181.116.xxx` bei Subnetzmaske 255.255.255.0)
+> - Die gewählte IP darf noch nicht im Netzwerk verwendet werden
+
+### 5. Verbindung testen
+Um sicherzustellen, dass die Netzwerkverbindung zum Roboter funktioniert, kann dieser vorab angepingt werden:
+```bash
+ping 10.181.116.51
+```
+
+### 6. Erwartetes Ergebnis
+- Der Roboter antwortet auf die Anfrage
+- Keine Paketverluste
+
+Beispiel:
+```bash
+64 bytes from 10.181.116.51: icmp_seq=1 ttl=64 time=0.5 ms
+```
+
+---
+
+### Hinweis
+- Wenn keine Antwort kommt:
+  - IP-Adresse überprüfen
+  - Laptop im richtigen Netzwerk?
+  - Freie IP-Adresse gewählt?
+  - Netzwerkkabel verbunden?
+
+> ⚠️ Der Ping-Test bestätigt nur die grundlegende Netzwerkverbindung.  
+> Für die Steuerung müssen zusätzlich die richtigen Ports gesetzt und die EKI-Schnittstelle auf dem Roboter aktiv sein.
+
+
+## Einrichtung – Kuka Robot Control (KRC)
 1. Power and boot the robot/controller.
 2. Ensure the robot-side program that serves Ethernet/TCP commands is running.
 3. Confirm that both motion and meta interfaces are active on the controller.
