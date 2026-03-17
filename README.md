@@ -48,22 +48,22 @@ Vor dem ersten Start müssen die Verbindungsparameter zum Roboter überprüft un
   
 ### 2. Standardwerte im Projekt
 Dieses Projekt verwendet standardmäßig folgende Konfiguration:
-- Robot IP: `10.181.116.51`
-- Meta Port: `54601`
-- Motion Port: `54602`
+- KUKA_IP: `10.181.116.51`
+- KUKA_PORT_META: `54601`
+- KUKA_PORT_MOTION: `54602`
   
 ### 3. Anpassung der Parameter
 Falls dein Roboter oder Netzwerk davon abweicht, müssen IP-Adresse und Ports entsprechend angepasst werden.
 In den oben genannten Dateien:
 
 ```python
-ROBOT_IP = "10.xxx.xxx.xxx"
-META_PORT = XXXX
-MOTION_PORT = XXXX
+KUKA_IP = "10.xxx.xxx.xxx"
+KUKA_PORT_META = XXXX
+KUKA_MOTION_PORT = XXXX
 ```
-- **ROBOT_IP** → IP-Adresse des KUKA Controllers  
-- **META_PORT** → Port für Meta-Kommunikation  
-- **MOTION_PORT** → Port für Motion-Kommunikation/ Bewegungsbefehle  
+- **KUKA_IP** → IP-Adresse des KUKA Controllers  
+- **KUKA_PORT_META** → Port für Meta-Kommunikation  
+- **KUKA_MOTION_PORT** → Port für Motion-Kommunikation/ Bewegungsbefehle  
 
 > ⚠️ Die Portnummern müssen mit der Konfiguration auf der KUKA-Seite übereinstimmen.
 
