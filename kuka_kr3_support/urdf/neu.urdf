@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<robot name="kuka_kr3r540">
+
+  <!-- base_link -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/visual/base_link.stl"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/collision/base_link.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="link_1">
+    <visual>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/visual/link_1.stl"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/collision/link_1.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="link_2">
+    <visual>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/visual/link_2.stl"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/collision/link_2.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="link_3">
+    <visual>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/visual/link_3.stl"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/collision/link_3.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="link_4">
+    <visual>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/visual/link_4.stl"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/collision/link_4.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="link_5">
+    <visual>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/visual/link_5.stl"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/collision/link_5.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="link_6">
+    <visual>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/visual/link_6.stl"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="C:/Users/marce/Downloads/urdf_files_dataset/urdf_files/ros-industrial/xacro_generated/kuka/kuka_kr3_support/meshes/kr3r540/collision/link_6.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="flange"/>
+
+  <!-- JOINT LIMITS ADDED BACK! -->
+
+  <joint name="joint_a1" type="revolute">
+    <origin xyz="0 0 0.345" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="link_1"/>
+    <axis xyz="0 0 -1"/>
+    <limit lower="-2.967059728" upper="2.967059728" effort="0" velocity="9.25"/>
+  </joint>
+
+  <joint name="joint_a2" type="revolute">
+    <origin xyz="0.020 0 0" rpy="0 0 0"/>
+    <parent link="link_1"/>
+    <child link="link_2"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.967059728" upper="0.8726646259" effort="0" velocity="9.23"/>
+  </joint>
+
+  <joint name="joint_a3" type="revolute">
+    <origin xyz="0.260 0 0" rpy="0 0 0"/>
+    <parent link="link_2"/>
+    <child link="link_3"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.919862177" upper="2.7052603405" effort="0" velocity="9.38"/>
+  </joint>
+
+  <joint name="joint_a4" type="revolute">
+    <origin xyz="0 0 0.020" rpy="0 0 0"/>
+    <parent link="link_3"/>
+    <child link="link_4"/>
+    <axis xyz="-1 0 0"/>
+    <limit lower="-3.05432619" upper="3.05432619" effort="0" velocity="10.47"/>
+  </joint>
+
+  <joint name="joint_a5" type="revolute">
+    <origin xyz="0.260 0 0" rpy="0 0 0"/>
+    <parent link="link_4"/>
+    <child link="link_5"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.0943951" upper="2.0943951" effort="0" velocity="10.47"/>
+  </joint>
+
+  <joint name="joint_a6" type="revolute">
+    <origin xyz="0.075 0 0" rpy="0 0 0"/>
+    <parent link="link_5"/>
+    <child link="link_6"/>
+    <axis xyz="-1 0 0"/>
+    <limit lower="-6.10865238" upper="6.10865238" effort="0" velocity="13.96"/>
+  </joint>
+
+  <joint name="joint_a6-tool0" type="fixed">
+    <parent link="link_6"/>
+    <child link="flange"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+</robot>

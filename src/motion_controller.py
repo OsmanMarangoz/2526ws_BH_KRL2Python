@@ -5,6 +5,7 @@ import time
 import pybullet as p
 import pybullet_data
 import math
+from pathlib import Path
 
 class MotionController:
     def __init__(self, motionTransport):
@@ -21,7 +22,7 @@ class MotionController:
         p.connect(p.GUI)
         p.setGravity(0,0,-9.81)
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
-        urdf_path = r"/home/lukas/Dokumente/KRL2Python/kuka/kuka_kr3_support/urdf/kr3r540.urdf"
+        urdf_path = str(Path(__file__).resolve().parent.parent / "kuka_kr3_support" / "urdf" / "kr3r540.urdf")
         self.robotURDF = p.loadURDF(urdf_path, useFixedBase=True)
 
     def _update_command_state(self):

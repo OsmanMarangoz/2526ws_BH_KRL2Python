@@ -1,9 +1,9 @@
 from time import sleep
 
-from robot import Robot
-from command import Command
-from point import Point6D
-from csvHelper import load_all_points_csv, load_point_csv
+from src.robot import Robot
+from src.command import Command
+from src.point import Point6D
+from src.csvHelper import load_all_points_csv, load_point_csv
 
 if __name__ == "__main__":
 
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         # -------------------------------------------------
         # 1) PTP zu gespeichertem Punkt
         # -------------------------------------------------
-        p1 = load_point_csv("points.csv", "H5")
+        p1 = load_point_csv("../database/points.csv", "H5")
         kuka.ptp(p1)
 
         # -------------------------------------------------
@@ -51,7 +51,7 @@ if __name__ == "__main__":
         # 4) Move Sequence
         # mehrere Punkte in einer Übertragung
         # -------------------------------------------------
-        sequence_points = load_all_points_csv("sequence_points.csv")
+        sequence_points = load_all_points_csv("../database/sequence_points.csv")
 
         kuka.move_sequence(
             points=sequence_points,

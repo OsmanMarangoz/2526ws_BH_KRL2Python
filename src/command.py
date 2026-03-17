@@ -24,7 +24,7 @@ class Command:
         self.commandMode = CommandMode.CHANGEMODE
 
         self.override = 100
-        self.fileName = "points.csv"
+        self.fileName = r"../database/points.csv"
 
 # ------------------------------------------- Loops for threading -------------------------------------------
     def loop(self):
