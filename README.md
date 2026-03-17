@@ -34,8 +34,25 @@ conda activate kuka_env
 pip install -r requirements.txt
 ```
 
-### 4. ggf. PyBullet überprüfen - tbd
+### 4. PyBullet Installation überprüfen
+```bash
+python -c "import pybullet as p; p.connect(p.GUI); import time; time.sleep(3); p.disconnect()"
+```
+#### Erwartetes Verhalten
+- Es öffnet sich ein PyBullet-Fenster
+- Das Fenster bleibt für ca. 3 Sekunden sichtbar
+- Danach schließt es sich automatisch
 
+#### Fehlerbehebung
+1. Falls kein Fenster erscheint oder ein Fehler auftritt:
+- Prüfen, ob PyBullet installiert ist:
+```bash
+pip show pybullet
+```
+2. Sicherstellen, dass eine grafische Oberfläche verfügbar ist
+- Typische Fehler:
+	- cannot connect to X server → keine GUI verfügbar
+	- Fenster öffnet sich nicht → OpenGL / Grafiktreiber prüfen
 ---
 
 ## Einrichtung - Netzwerkkonfiguration
@@ -98,8 +115,6 @@ Beispiel:
 64 bytes from 10.181.116.51: icmp_seq=1 ttl=64 time=0.5 ms
 ```
 
----
-
 ### Hinweis
 - Wenn keine Antwort kommt:
   - IP-Adresse überprüfen
@@ -110,33 +125,68 @@ Beispiel:
 > ⚠️ Der Ping-Test bestätigt nur die grundlegende Netzwerkverbindung.  
 > Für die Steuerung müssen zusätzlich die richtigen Ports gesetzt und die EKI-Schnittstelle auf dem Roboter aktiv sein.
 
+--- 
 
-## Einrichtung – Kuka Robot Control (KRC)
-1. Power and boot the robot/controller.
-2. Ensure the robot-side program that serves Ethernet/TCP commands is running.
-3. Confirm that both motion and meta interfaces are active on the controller.
-4. Check that your Ubuntu PC can reach the robot IP (same subnet, no firewall block on required ports).
+## Einrichtung – KUKA Robot Controller (KRC)
+In diesem Abschnitt wird die Installation und Konfiguration des Projekts auf der KUKA-Steuerung beschrieben.
 
-## Start Python Side on Ubuntu PC
+### 1. Projekt auf den Controller übertragen
 
-### Interactive mode
+Das KUKA-Projekt muss zunächst auf den Controller geladen werden.
+Möglichkeiten:
+- Über **WorkVisual**
+- Oder per **USB-Stick**
 
-```bash
-python src/Main.py
-```
+Das Projekt enthält:
+- EKI-Konfiguration (XML-Dateien)
+- KRL-Programme für Motion- und Meta-Kommunikation
 
-This starts:
-- TCP connection to motion + meta channels
-- receive/visualization thread
-- command menu (`MOVE`, `GRIP`, `SAVEPOINT`, `SETTINGS`)
+### 2. EKI-Konfiguration anpassen
+In der EKI-Konfiguration müssen folgende Parameter überprüft und ggf. angepasst werden:
+- **IP-Adresse des externen Rechners (Python-PC)**
+- **Ports für:**
+  - Motion-Kommunikation
+  - Meta-Kommunikation
 
-### Scripted demo mode
+> ⚠️ Diese Werte müssen exakt mit den Einstellungen im Python-Projekt übereinstimmen.
 
-```bash
-python scripts/example_script.py
-```
+### 3. Benutzergruppe einstellen
 
-This executes a predefined pick/place sequence using points from `database/points.csv` and `database/sequence_points.csv`.
+Für die Ausführung der Programme wird mindestens folgende Benutzergruppe benötigt:
+- **Expert**
+
+### 4. Programme auf dem KRC
+Für den Betrieb werden typischerweise folgende Programme verwendet:
+- **Roboterprogramm (Motion)**  
+  → verarbeitet Bewegungsbefehle
+
+- **Submit Interpreter (Meta / Hintergrundprogramm)**  
+  → verarbeitet Steuerbefehle (z. B. Override, Stop)
+
+> ⚠️ Beide Programme müssen korrekt konfiguriert und gestartet sein.
+
+### 5. System starten
+1. Roboter und Controller einschalten
+2. KUKA-System vollständig hochfahren lassen
+3. Roboterprogramm auswählen und starten
+4. Submit Interpreter starten (falls erforderlich)
+
+### 6. Schnittstellen prüfen
+Stelle sicher, dass:
+- EKI-Schnittstelle aktiv ist
+- Beide Kommunikationskanäle verfügbar sind:
+  - Motion
+  - Meta
+    
+### 7. Soll-Zustand
+Das System ist korrekt eingerichtet, wenn:
+- Keine Fehlermeldungen auf dem KUKA-Controller auftreten
+- EKI-Verbindungen aktiv sind
+- Der Python-Client sich erfolgreich verbinden kann
+- Bewegungsbefehle korrekt ausgeführt werden
+
+
+## Interactive Mode | eigenes Python Skript
 
 ## Repository Layout
 
@@ -171,15 +221,6 @@ Use cases:
 - Load a named pose
 - Load all points and run sequence (`PTP` or `LIN`)
 
-## EKI/TCP Connection Notes
-
-To avoid stale connections:
-
-1. Stop the Python client first.
-2. Then stop/deselect robot-side interface program(s).
-3. Restart robot-side program(s) before reconnecting if needed.
-
-This helps ensure clean reconnection on both motion and meta sockets.
 
 ## Troubleshooting
 
