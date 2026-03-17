@@ -31,30 +31,32 @@ if __name__ == "__main__":
         # Default settings
         kuka.set_default_velocity(0.1)
         kuka.set_default_base(0)
-        kuka.set_default_tool(15)
-
+        kuka.set_default_tool(14)
+        sleep(0.5)
         # -------------------------------------------------
         # 1) PTP zu gespeichertem Punkt
         # -------------------------------------------------
-        p1 = load_point_csv(str(database_dir / "points.csv"), "H5")
+        p1 = load_point_csv(str(database_dir / "points.csv"), "startpose") #homepose
+        p2 = load_point_csv(str(database_dir / "points.csv"), "xp1") #pre pose lin
+        p3 = load_point_csv(str(database_dir / "points.csv"), "xp2") #linear motion to pick pose muss lin
+        p4 = load_point_csv(str(database_dir / "points.csv"), "xp3") #pick pose
+
         kuka.ptp(p1)
 
-        # -------------------------------------------------
-        # 2) LIN zu manuell erzeugtem Punkt
-        # -------------------------------------------------
-        p2 = Point6D("p2", 100, 200, 300, 0, 90, 0)
-        kuka.lin(p2, vel=0.5)
+        kuka.jaw_open()
 
-        # -------------------------------------------------
-        # 3) CIRC
-        # aux = Zwischenpunkt auf dem Kreisbogen
-        # end = Endpunkt der Kreisbewegung
-        # -------------------------------------------------
-        aux_point = Point6D("aux", 150, 250, 320, 0, 90, 0)
-        end_point = Point6D("end", 200, 300, 300, 0, 90, 0)
+        kuka.lin(p2)
+        kuka.lin(p3)
+        kuka.lin(p4)
 
-        kuka.circ(end=end_point, aux=aux_point, vel=0.2)
+        kuka.jaw_close()
+        sleep(0.5)
 
+        kuka.lin(p3)
+        kuka.lin(p2)
+        kuka.ptp(p1)
+
+        kuka.set_default_tool(15)
         # -------------------------------------------------
         # 4) Move Sequence
         # mehrere Punkte in einer Übertragung
