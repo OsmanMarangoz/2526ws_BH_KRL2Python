@@ -5,6 +5,10 @@
 > [!NOTE]
 > Das Repository ist für einen KR3 R540 vorkonfiguriert und kann durch Anpassung von IP-Adressen, Ports und Punktdaten auf andere Setups übertragen werden.
 
+## Topologie / Interaktion KRC / KUKA / Python
+- Beschreibung (kurz)
+- geile Grafik -> Marcel
+
 ---
 
 ## Einrichtung – KUKA Robot Controller (KRC)
@@ -187,6 +191,37 @@ Beispiel:
 
 --- 
 
+## Funktionsumfang
+Nach erfolgreicher Installation und Einrichtung ermöglicht das Python-Paket die vollständige Steuerung eines KUKA-Roboters über die EthernetKRL-Schnittstelle.
+Dabei stehen folgende Funktionen zur Verfügung:
+- **Bewegungsbefehle**
+	- Punkt-zu-Punkt (PTP) in kartesischen Koordinaten
+	- Punkt-zu-Punkt in Gelenkkoordinaten (PTP Joint)
+	- Linearbewegungen (LIN)
+	- Kreisbewegungen (CIRC)
+	- Ausführung von Bewegungssequenzen aus CSV-Dateien
+
+- **Greifersteuerung**
+	- Öffnen und Schließen des Greifers über digitale Signale
+
+- **Systemsteuerung**
+	- Setzen des Velocity-Override (Geschwindigkeit in %)
+	- Abbruch laufender Bewegungen (Abort)
+
+- **Punktverwaltung**
+	- Speichern von Roboterpositionen (Touchup)
+	- Laden und Wiederverwenden gespeicherter Punkte
+	- Organisation von Sequenzen über CSV-Dateien
+
+- **Visualisierung**
+	- Darstellung der aktuellen Gelenkzustände des Roboters in PyBullet
+
+- **Zwei Nutzungsarten**
+	- **Interaktiv** über eine Konsolenoberfläche (CLI)
+	- **Programmgesteuert über eigene Python-Skripte** mittels der Robot-Klasse
+
+---
+
 ## Repository Layout
 
 - `src/`
@@ -239,6 +274,8 @@ Diese Trennung entspricht der Struktur auf der KUKA-Seite (EKI) und ermöglicht 
 - Aufbau und Abbau der Verbindung
 - Senden von XML-Nachrichten
 - Empfangen von Statusdaten
+
+<img width="788" height="480" alt="Klassendiagramm" src="https://github.com/user-attachments/assets/1bdab0a3-222b-4678-b8bd-a2d017d104fd" />
 
 ### 4. Zusammenspiel der Schichten
 Der typische Ablauf innerhalb des Systems ist klar hierarchisch aufgebaut:
