@@ -7,6 +7,66 @@
 
 ---
 
+## Einrichtung – KUKA Robot Controller (KRC)
+In diesem Abschnitt wird die Installation und Konfiguration des Projekts auf der KUKA-Steuerung beschrieben.
+
+### 1. Projekt auf den Controller übertragen
+
+Das KUKA-Projekt muss zunächst auf den Controller geladen werden.
+Möglichkeiten:
+- Über **WorkVisual**
+- Oder per **USB-Stick**
+
+Das Projekt enthält:
+- EKI-Konfiguration (XML-Dateien)
+- KRL-Programme für Motion- und Meta-Kommunikation
+
+### 2. EKI-Konfiguration anpassen
+In der EKI-Konfiguration müssen folgende Parameter überprüft und ggf. angepasst werden:
+- **IP-Adresse des externen Rechners (Python-PC)**
+- **Ports für:**
+  - Motion-Kommunikation
+  - Meta-Kommunikation
+
+> ⚠️ Diese Werte müssen exakt mit den Einstellungen im Python-Projekt übereinstimmen.
+
+### 3. Benutzergruppe einstellen
+
+Für die Ausführung der Programme wird mindestens folgende Benutzergruppe benötigt:
+- **Expert**
+
+### 4. Programme auf dem KRC
+Für den Betrieb werden typischerweise folgende Programme verwendet:
+- **Roboterprogramm (Motion)**  
+  → verarbeitet Bewegungsbefehle
+
+- **Submit Interpreter (Meta / Hintergrundprogramm)**  
+  → verarbeitet Steuerbefehle (z. B. Override, Stop)
+
+> ⚠️ Beide Programme müssen korrekt konfiguriert und gestartet sein.
+
+### 5. System starten
+1. Roboter und Controller einschalten
+2. KUKA-System vollständig hochfahren lassen
+3. Roboterprogramm auswählen und starten
+4. Submit Interpreter starten (falls erforderlich)
+
+### 6. Schnittstellen prüfen
+Stelle sicher, dass:
+- EKI-Schnittstelle aktiv ist
+- Beide Kommunikationskanäle verfügbar sind:
+  - Motion
+  - Meta
+    
+### 7. Soll-Zustand
+Das System ist korrekt eingerichtet, wenn:
+- Keine Fehlermeldungen auf dem KUKA-Controller auftreten
+- EKI-Verbindungen aktiv sind
+- Der Python-Client sich erfolgreich verbinden kann
+- Bewegungsbefehle korrekt ausgeführt werden
+
+--- 
+
 ## Voraussetzungen
 - Python 3.10 oder neuer
 - Conda (Miniconda oder Anaconda)
@@ -127,99 +187,75 @@ Beispiel:
 
 --- 
 
-## Einrichtung – KUKA Robot Controller (KRC)
-In diesem Abschnitt wird die Installation und Konfiguration des Projekts auf der KUKA-Steuerung beschrieben.
-
-### 1. Projekt auf den Controller übertragen
-
-Das KUKA-Projekt muss zunächst auf den Controller geladen werden.
-Möglichkeiten:
-- Über **WorkVisual**
-- Oder per **USB-Stick**
-
-Das Projekt enthält:
-- EKI-Konfiguration (XML-Dateien)
-- KRL-Programme für Motion- und Meta-Kommunikation
-
-### 2. EKI-Konfiguration anpassen
-In der EKI-Konfiguration müssen folgende Parameter überprüft und ggf. angepasst werden:
-- **IP-Adresse des externen Rechners (Python-PC)**
-- **Ports für:**
-  - Motion-Kommunikation
-  - Meta-Kommunikation
-
-> ⚠️ Diese Werte müssen exakt mit den Einstellungen im Python-Projekt übereinstimmen.
-
-### 3. Benutzergruppe einstellen
-
-Für die Ausführung der Programme wird mindestens folgende Benutzergruppe benötigt:
-- **Expert**
-
-### 4. Programme auf dem KRC
-Für den Betrieb werden typischerweise folgende Programme verwendet:
-- **Roboterprogramm (Motion)**  
-  → verarbeitet Bewegungsbefehle
-
-- **Submit Interpreter (Meta / Hintergrundprogramm)**  
-  → verarbeitet Steuerbefehle (z. B. Override, Stop)
-
-> ⚠️ Beide Programme müssen korrekt konfiguriert und gestartet sein.
-
-### 5. System starten
-1. Roboter und Controller einschalten
-2. KUKA-System vollständig hochfahren lassen
-3. Roboterprogramm auswählen und starten
-4. Submit Interpreter starten (falls erforderlich)
-
-### 6. Schnittstellen prüfen
-Stelle sicher, dass:
-- EKI-Schnittstelle aktiv ist
-- Beide Kommunikationskanäle verfügbar sind:
-  - Motion
-  - Meta
-    
-### 7. Soll-Zustand
-Das System ist korrekt eingerichtet, wenn:
-- Keine Fehlermeldungen auf dem KUKA-Controller auftreten
-- EKI-Verbindungen aktiv sind
-- Der Python-Client sich erfolgreich verbinden kann
-- Bewegungsbefehle korrekt ausgeführt werden
-
-
-## Interactive Mode | eigenes Python Skript
-
 ## Repository Layout
 
 - `src/`
-	- `Main.py` — interactive launcher
-	- `command.py` — CLI + user workflows
-	- `robot.py` — combines motion/meta controllers
-	- `motion_controller.py` — move/gripper XML + PyBullet update loop
-	- `meta_controller.py` — override + abort commands
-	- `transport.py` — TCP socket transport
-	- `csvHelper.py` — CSV read/write utilities
-	- `point.py` — `Point6D`, `JointState`
+  	Enthält den gesamten Python-Quellcode der Anwendung:
+	- `Main.py` — Einstiegspunkt für die interaktive Anwendung (Konsolensteuerung)
+	- `command.py` — Implementierung der CLI und Benutzerinteraktion
+	- `robot.py` — Zentrale Klasse, die Motion- und Meta-Controller zusammenführt
+	- `motion_controller.py` — Bewegungs- und Greiferbefehle sowie PyBullet-Visualisierung
+	- `meta_controller.py` — Steuerbefehle wie Override und Abort
+	- `transport.py` — TCP-Kommunikation mit der KUKA-Steuerung
+	- `csvHelper.py` — Funktionen zum Lesen und Schreiben von CSV-Dateien
+	- `point.py` — Datenstrukturen (`Point6D`, `JointState`) für Roboterzustände
 - `database/`
-	- `points.csv` — named poses
-	- `sequence_points.csv` — sequence poses
+  	Enthält gespeicherte Roboterpunkte:
+	- `points.csv` — Benannte Zielpunkte (z.B. von Touchup)
+	- `sequence_points.csv` — Punkte für Bewegungssequenzen
 - `kuka_kr3_support/`
-	- URDF and meshes for KR3 visualization
+  	Beinhaltet URDF-Dateien und Meshes zur Visualisierung des KR3-Roboters in PyBullet
 - `scripts/`
-	- runnable examples
+	Beispielskripte zur direkten Nutzung der Robot-Klasse ohne Konsolenoberfläche
 
-## CSV Point Format
+---
 
-CSV header:
+## Systemarchitektur
+Die Software ist modular aufgebaut und folgt einer klaren Trennung der Verantwortlichkeiten. Ziel dieser Architektur ist es, die Benutzerinteraktion, die Roboterlogik und die Netzwerkkommunikation voneinander zu entkoppeln. Dadurch wird das System übersichtlich, erweiterbar und sowohl für interaktive Nutzung als auch für automatisierte Abläufe geeignet.
 
-```text
-name,x,y,z,a,b,c
-```
+### 1. Anwendung
+Die oberste Schicht bildet die Klasse `Command`. Sie stellt die Schnittstelle zum Benutzer dar und implementiert eine textbasierte Menüführung im Terminal. Hier werden alle Benutzereingaben verarbeitet und in konkrete Roboterbefehle übersetzt.
 
-Use cases:
-- Save current pose (`touchup`)
-- Save manual pose
-- Load a named pose
-- Load all points and run sequence (`PTP` or `LIN`)
+`Command` selbst enthält keine Logik zur Robotersteuerung, sondern fungiert ausschließlich als Vermittler. Je nach Auswahl im Menü werden Methoden der darunterliegenden Robot-Klasse aufgerufen. Zusätzlich verwaltet diese Schicht Zustände wie den aktuellen Bedienmodus (`CommandMode`) sowie Hilfsstrukturen für Eingaben und Punktverwaltung.
+
+### 2. Logik
+Die zentrale Komponente dieser Schicht ist die Klasse `Robot`. Sie stellt die Hauptschnittstelle für alle Roboterfunktionen dar und bündelt die Funktionalität der beiden Controller:
+- `MotionController` für Bewegungs- und Greiferbefehle
+- `MetaController` für übergeordnete Steuerbefehle wie Override oder Abort
+
+Diese Trennung ist bewusst gewählt: Bewegungsbefehle und Systemsteuerbefehle werden unabhängig voneinander behandelt, obwohl sie technisch über ähnliche Kommunikationsmechanismen laufen.
+Die Klasse `Robot` abstrahiert diese Aufteilung vollständig. Für den Benutzer (oder ein externes Skript) wirkt sie wie eine einheitliche API, obwohl intern mehrere spezialisierte Komponenten zusammenarbeiten.
+
+Zusätzlich werden in dieser Schicht Datenstrukturen wie `Point6D` und `JointState` verwendet, um Roboterzustände und Zielpositionen standardisiert abzubilden. Dadurch entsteht eine klare Trennung zwischen Datenrepräsentation und Kommunikationslogik.
+
+### 3. Kommunikation
+Die unterste Schicht bildet die Netzwerkkommunikation mit der KUKA-Steuerung. Diese wird durch die Klasse `TcpTransport` kapselt.
+Jeder Controller verwendet eine eigene Instanz dieser Klasse:
+- eine Verbindung für Bewegungsdaten (Motion-Kanal)
+- eine Verbindung für Steuerbefehle (Meta-Kanal)
+
+Diese Trennung entspricht der Struktur auf der KUKA-Seite (EKI) und ermöglicht eine parallele und unabhängige Verarbeitung von Bewegungs- und Steuerbefehlen.
+`TcpTransport` übernimmt dabei ausschließlich technische Aufgaben wie:
+- Aufbau und Abbau der Verbindung
+- Senden von XML-Nachrichten
+- Empfangen von Statusdaten
+
+### 4. Zusammenspiel der Schichten
+Der typische Ablauf innerhalb des Systems ist klar hierarchisch aufgebaut:
+1. Der Benutzer gibt einen Befehl im Terminal ein (Command).
+2. Command übersetzt diese Eingabe in einen Methodenaufruf auf Robot.
+3. Robot delegiert den Aufruf an den passenden Controller (MotionController oder MetaController).
+4. Der jeweilige Controller erzeugt ein XML-Kommando entsprechend der KUKA-EKI-Spezifikation.
+5. Das Kommando wird über TcpTransport an die Robotersteuerung gesendet.
+
+Rückmeldungen der Steuerung werden in umgekehrter Richtung verarbeitet und können zur Aktualisierung von Zuständen oder zur Visualisierung verwendet werden.
+
+> ⚠️ **Wichtig**: Die Klasse `Command` ist optional und nicht zwingend Bestandteil des Systems. Sie dient ausschließlich der interaktiven Bedienung über das Terminal.
+
+Alternativ kann die Steuerung vollständig ohne Command erfolgen, indem ein eigenes Python-Skript direkt mit der Klasse Robot arbeitet. In diesem Fall entfällt die gesamte Anwendungsschicht, und die Befehle werden programmgesteuert ausgeführt:
+1. Ein eigenes Skript ruft direkt Methoden der Klasse `Robot` auf.
+2. `Robot` delegiert die Befehle wie gewohnt an die jeweiligen Controller.
+3. Die Kommunikation mit der KUKA-Steuerung erfolgt unverändert über `TcpTransport`.
 
 
 ## Troubleshooting
