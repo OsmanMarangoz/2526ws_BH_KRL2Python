@@ -1,0 +1,41 @@
+&ACCESS RVP
+&PARAM EDITMASK = *
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\submit
+DEF meta_eki( )
+   
+   ;DECL REAL META_VELOCITY_OVERRIDE
+   DECL INT rx_override
+   DECL INT abort_commands
+   DECL EKI_STATUS status
+   abort_commands = 0
+   rx_override = 0
+   META_VELOCITY_OVERRIDE = 0
+   
+   ;FOLD INI
+     ;FOLD USER INIT
+     ; Please insert user defined initialization commands
+   
+     ;ENDFOLD (USER INIT)
+   ;ENDFOLD (INI)
+   
+   
+   status = EKI_Init("META_EKI")
+   msgnotify("init funktioniert!")
+   status = EKI_Open("META_EKI")
+   msgnotify("open funktioniert!")
+   
+   LOOP
+      status = EKI_CheckBuffer("META_EKI","MetaCommand/@VelocityOverride")
+
+   IF status.buff > 0 THEN
+       msgnotify("buff durchgelaufen!")
+       status = EKI_GetINT("META_EKI","MetaCommand/@VelocityOverride",rx_override)
+       META_VELOCITY_OVERRIDE = rx_override
+      
+   WAIT SEC 0.02
+   
+   endif 
+   ENDLOOP
+
+END
+

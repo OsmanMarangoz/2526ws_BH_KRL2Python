@@ -41,10 +41,10 @@ Für die Ausführung der Programme wird mindestens folgende Benutzergruppe benö
 
 ### 4. Programme auf dem KRC
 Für den Betrieb werden typischerweise folgende Programme verwendet:
-- **Roboterprogramm (Motion)**  
+- **Roboterprogramm (Motion)**
   → verarbeitet Bewegungsbefehle
 
-- **Submit Interpreter (Meta / Hintergrundprogramm)**  
+- **Submit Interpreter (Meta / Hintergrundprogramm)**
   → verarbeitet Steuerbefehle (z. B. Override, Stop)
 
 > ⚠️ Beide Programme müssen korrekt konfiguriert und gestartet sein.
@@ -61,7 +61,7 @@ Stelle sicher, dass:
 - Beide Kommunikationskanäle verfügbar sind:
   - Motion
   - Meta
-    
+
 ### 7. Soll-Zustand
 Das System ist korrekt eingerichtet, wenn:
 - Keine Fehlermeldungen auf dem KUKA-Controller auftreten
@@ -69,11 +69,11 @@ Das System ist korrekt eingerichtet, wenn:
 - Der Python-Client sich erfolgreich verbinden kann
 - Bewegungsbefehle korrekt ausgeführt werden
 
---- 
+---
 
 ## Voraussetzungen
-- Python 3.10 oder neuer
-- Conda (Miniconda oder Anaconda)
+- Python 3.10 oder neuer (z. B. Python 3.13.7 unter Linux)
+- Optional: Conda (Miniconda oder Anaconda)
 - Netzwerkzugriff auf den KUKA Controller
 - GUI/OpenGL-Unterstützung (für PyBullet)
 
@@ -87,15 +87,25 @@ git clone <repository-url>
 cd <repository-name>
 ```
 
-### 2. Conda Environment erstellen
+### 2. Virtuelle Umgebung erstellen (empfohlen)
+
+Option A: Standard Python `venv` (ohne Conda)
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+```
+
+Option B: Conda (optional)
 ```bash
 conda create -n kuka_env python=3.10
 conda activate kuka_env
+python -m pip install --upgrade pip
 ```
 
 ### 3. Abhängigkeiten installieren
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ### 4. PyBullet Installation überprüfen
@@ -126,13 +136,13 @@ Vor dem ersten Start müssen die Verbindungsparameter zum Roboter überprüft un
 Überprüfe die Verbindungseinstellungen in folgenden Dateien:
 - `src/Main.py`
 - `scripts/example_script.py`
-  
+
 ### 2. Standardwerte im Projekt
 Dieses Projekt verwendet standardmäßig folgende Konfiguration:
 - KUKA_IP: `10.181.116.51`
 - KUKA_PORT_META: `54601`
 - KUKA_PORT_MOTION: `54602`
-  
+
 ### 3. Anpassung der Parameter
 Falls dein Roboter oder Netzwerk davon abweicht, müssen IP-Adresse und Ports entsprechend angepasst werden.
 In den oben genannten Dateien:
@@ -142,9 +152,9 @@ KUKA_IP = "10.xxx.xxx.xxx"
 KUKA_PORT_META = XXXX
 KUKA_MOTION_PORT = XXXX
 ```
-- **KUKA_IP** → IP-Adresse des KUKA Controllers  
-- **KUKA_PORT_META** → Port für Meta-Kommunikation  
-- **KUKA_MOTION_PORT** → Port für Motion-Kommunikation/ Bewegungsbefehle  
+- **KUKA_IP** → IP-Adresse des KUKA Controllers
+- **KUKA_PORT_META** → Port für Meta-Kommunikation
+- **KUKA_MOTION_PORT** → Port für Motion-Kommunikation/ Bewegungsbefehle
 
 > ⚠️ Die Portnummern müssen mit der Konfiguration auf der KUKA-Seite übereinstimmen.
 
@@ -186,10 +196,10 @@ Beispiel:
   - Freie IP-Adresse gewählt?
   - Netzwerkkabel verbunden?
 
-> ⚠️ Der Ping-Test bestätigt nur die grundlegende Netzwerkverbindung.  
+> ⚠️ Der Ping-Test bestätigt nur die grundlegende Netzwerkverbindung.
 > Für die Steuerung müssen zusätzlich die richtigen Ports gesetzt und die EKI-Schnittstelle auf dem Roboter aktiv sein.
 
---- 
+---
 
 ## Funktionsumfang
 Nach erfolgreicher Installation und Einrichtung ermöglicht das Python-Paket die vollständige Steuerung eines KUKA-Roboters über die EthernetKRL-Schnittstelle.
@@ -220,6 +230,16 @@ Dabei stehen folgende Funktionen zur Verfügung:
 	- **Interaktiv** über eine Konsolenoberfläche (CLI)
 	- **Programmgesteuert über eigene Python-Skripte** mittels der Robot-Klasse
 
+### Motion-Modi (aus `motion_eki.xml`, `RobotCommand/Move/@Mode`)
+Verfügbare Move-Modi **1–6**:
+
+- **1** = Joint
+- **2** = Cartesian-PTP
+- **3** = Cartesian-LIN
+- **4** = Teached-PTP
+- **5** = Teached-LIN
+- **6** = Cartesian-CIRC
+
 ---
 
 ## Repository Layout
@@ -237,7 +257,7 @@ Dabei stehen folgende Funktionen zur Verfügung:
 - `database/`
   	Enthält gespeicherte Roboterpunkte:
 	- `points.csv` — Benannte Zielpunkte (z.B. von Touchup)
-	- `sequence_points.csv` — Punkte für Bewegungssequenzen
+	- `sequence_points.csv` — Punkte für Bewegungsseque	nzen
 - `kuka_kr3_support/`
   	Beinhaltet URDF-Dateien und Meshes zur Visualisierung des KR3-Roboters in PyBullet
 - `scripts/`
@@ -297,26 +317,31 @@ Alternativ kann die Steuerung vollständig ohne Command erfolgen, indem ein eige
 
 ## Troubleshooting
 
-### 1) Linux keyboard hook error
+### 1) Linux: `keyboard` benötigt Root-Rechte
 
-If you see:
+Wenn folgender Fehler erscheint:
 
 `ImportError: You must be root to use this library on linux.`
 
-it comes from global hotkeys in `command.py` (`s`, `+`, `-`) using `keyboard`.
+dann kommt das von den globalen Hotkeys in `command.py` (`s`, `+`, `-`) über das Paket `keyboard`.
 
-Options:
-- run with sufficient privileges,
-- or disable/remove hotkeys in `safetyLoop()` for non-root usage.
+Lösung:
+- Skript unter Linux mit `sudo` ausführen,
+- oder Hotkeys in `safetyLoop()` deaktivieren/entfernen.
 
-### 2) PyBullet URDF warnings
+### 2) `+` / `-` Eingaben funktionieren nicht
 
-Warnings like `No inertial data for link...` are common with simplified URDFs and usually non-blocking.
+Wenn `+` oder `-` nicht zuverlässig erkannt werden, die Tastenbelegung auf andere Tasten ändern. in `command.py` in der `safety_loop()`.
+Je nach Tastaturlayout (z. B. US-Layout) können diese Eingaben sonst zu Fehlern führen.
 
-### 3) No visualization window
+### 3) PyBullet URDF-Warnungen
 
-`motion_controller.py` uses `p.connect(p.GUI)`. Ensure X11/desktop/OpenGL is available.
+Warnungen wie `No inertial data for link...` können in diesem Projekt ignoriert werden.
 
-### 4) Socket timeout messages
+### 4) Kein Visualisierungsfenster
 
-Short timeouts are expected in polling loops. Persistent timeouts usually indicate network/interface mismatch.
+`motion_controller.py` verwendet `p.connect(p.GUI)`. Stelle sicher, dass X11/Desktop/OpenGL verfügbar ist.
+
+### 5) Socket-Timeouts
+
+Kurze Timeouts in Polling-Schleifen sind normal. Dauerhafte Timeouts deuten meist auf ein Netzwerk-/Schnittstellenproblem hin.

@@ -1,0 +1,6 @@
+&ACCESS RVO
+&REL 49
+defdat global_eki public
+   global bool ROBOT_STOPPED
+   global INT META_VELOCITY_OVERRIDE
+enddat

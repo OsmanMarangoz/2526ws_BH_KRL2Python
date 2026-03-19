@@ -1,0 +1,29 @@
+&ACCESS RVP
+&REL 64
+defdat motion_eki
+   ext bas(bas_command :in, real :in)
+   struc move_type int mode, base_index, tool_index, wait_for_gripper, teached, real velocity, acceleration, blending, axis joint, frame cartesian, frame cartesian_aux
+   struc command_type int id, step, type, move_type move_data, int grip_direction_mode
+   decl command_type current_command
+   decl axis teached_points[10]
+   
+   decl real act_joint_vel
+   decl real act_joint_acc
+   decl real act_cart_vel
+   decl real act_cart_acc
+   
+   decl real max_joint_vel
+   decl real max_joint_acc
+   
+   decl int CURRENT_COMMAND_ID
+   decl int LAST_FINISHED_MOVE_ID
+   
+   decl int temp_cmd_id
+   
+   decl int ControlWord
+   decl int DeviceMode
+   
+   decl int softkey_set_ovpro
+   decl int last_meta_override
+
+enddat

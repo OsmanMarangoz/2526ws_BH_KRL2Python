@@ -1,0 +1,8 @@
+&ACCESS RVO
+&REL 3
+&PARAM EDITMASK = *
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\submit
+defdat meta_eki
+   struc meta_type int velocity_override, int abort_commands
+   decl meta_type current_meta
+enddat

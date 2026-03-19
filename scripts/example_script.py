@@ -36,10 +36,9 @@ if __name__ == "__main__":
         # -------------------------------------------------
         # 1) PTP zu gespeichertem Punkt
         # -------------------------------------------------
-        p1 = load_point_csv(str(database_dir / "points.csv"), "startpose") #homepose
-        p2 = load_point_csv(str(database_dir / "points.csv"), "xp1") #pre pose lin
-        p3 = load_point_csv(str(database_dir / "points.csv"), "xp2") #linear motion to pick pose muss lin
-        p4 = load_point_csv(str(database_dir / "points.csv"), "xp3") #pick pose
+        p1 = load_point_csv(str(database_dir / "points.csv"), "xp1") #pre pose lin
+        p2 = load_point_csv(str(database_dir / "points.csv"), "xp2") #linear motion to pick pose muss lin
+        p3 = load_point_csv(str(database_dir / "points.csv"), "xp3") #pick pose
 
         kuka.ptp(p1)
 
@@ -47,7 +46,6 @@ if __name__ == "__main__":
 
         kuka.lin(p2)
         kuka.lin(p3)
-        kuka.lin(p4)
 
         kuka.jaw_close()
         sleep(0.5)
@@ -70,7 +68,6 @@ if __name__ == "__main__":
         )
 
         while kuka.cmd_counter > kuka.last_finished_id + 1:
-            print(kuka.last_finished_id, kuka.cmd_counter)
             sleep(0.5)
 
         kuka.disconnect()
