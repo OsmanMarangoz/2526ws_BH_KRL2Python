@@ -329,6 +329,16 @@ Lösung:
 - Skript unter Linux mit `sudo` ausführen,
 - oder Hotkeys in `safetyLoop()` deaktivieren/entfernen.
 
+Wichtig bei `sudo`:
+- Immer denselben Python-Interpreter verwenden wie ohne `sudo` (richtige Version/virtuelle Umgebung).
+- **Nicht** nur `sudo python ...` verwenden, da sonst oft ein anderer System-Python genutzt wird.
+
+Beispiel (allgemein):
+```bash
+which python
+sudo /pfad/zu/which python scripts/example_script.py
+```
+
 ### 2) `+` / `-` Eingaben funktionieren nicht
 
 Wenn `+` oder `-` nicht zuverlässig erkannt werden, die Tastenbelegung auf andere Tasten ändern. in `command.py` in der `safety_loop()`.
