@@ -20,7 +20,7 @@ Das KUKA-Projekt muss zunächst auf den Controller geladen werden.
 Möglichkeiten:
 - Über **WorkVisual**
 - Oder per **USB-Stick**
-![XML_Pfad](https://github.com/user-attachments/assets/d3b04c73-d272-442d-ad84-e912962473df)
+
 
 Das Projekt enthält:
 - EKI-Konfiguration (XML-Dateien)
