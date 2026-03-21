@@ -38,7 +38,7 @@ Teile der Beschreibung des Vorgehens wurden aus folgendem Repo adaptiert bzw. mo
 - 📄 [meta.xml](KRL/meta_eki.xml)  
 - 📄 [motion_eki.xml](KRL/motion_eki.xml)
 
-<p align="center">
+<p align="left">
   <img src="Abbildungen/XML_Pfad.JPG" width="300">
 </p>
 
@@ -47,7 +47,7 @@ In der EKI-Konfiguration(`<CONFIGURATION> </CONFIGURATION>`) müssen folgende Pa
 - **IP-Adresse des externen Rechners (Python-PC)**
 - **Portnummer**
 
-<p align="center">
+<p align="left">
   <img src="Abbildungen/XML_config.JPG" width="700">
 </p>
 
@@ -61,14 +61,14 @@ Es müssen folgende Dateien in das abgebildete Verzeichnis kopiert werden.
 - 📄 [motion_eki.dat](KRL/motion_eki.dat)  
 - 📄 [motion_eki.src](KRL/motion_eki.src)  
 
-<p align="center">
+<p align="left">
   <img src="Abbildungen/Programm_Pfad.JPG" width="300">
 </p>
 
 Zusätzlich muss in der Datei `custom.dat` der Eintrag `/R1/SPS()` durch `/R1/Meta_EKI()` ersetzt werden.
 
-<p align="center">
-  <img src="Abbildungen/multisub.JPG" width="90%">
+<p align="left">
+  <img src="Abbildungen/multisub.JPG" width="100%">
 </p>
 
 
