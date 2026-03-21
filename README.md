@@ -7,6 +7,12 @@
 
 ## Topologie / Interaktion KRC / KUKA / Python
 - Beschreibung (kurz)
+- **Roboterprogramm (Motion)**
+  → verarbeitet Bewegungsbefehle
+
+- **Submit Interpreter (Meta / Hintergrundprogramm)**
+  → verarbeitet Steuerbefehle (z. B. Override, Stop)
+
 - geile Grafik -> Marcel
 
 ---
@@ -17,23 +23,19 @@ Teile der Beschreibung des Vorgehens wurden aus folgendem Repo adaptiert bzw. mo
 
 
 
-<<<<<<< HEAD
-
-Das Projekt enthält:
-- EKI-Konfiguration (XML-Dateien)
-- KRL-Programme für Motion- und Meta-Kommunikation
-=======
->>>>>>> 2ae5199 (Update Readme)
 
 ### 1. Kuka Steuerung hochfahren
 ### 2. PC hochfahren und mit RZ-Benutzer anmelden
 ### 3. KRL Dateien aus dem Repo herunterladen 
 ### 4. Neues Workvisual Projekt am Smartpad erstellen
->⚠ Benutzergruppe Expert
-### 5. Einfügen und Anpassen der Konfigurationsdateien (meta.xml, motion.xml) in WorkVisual Projekt
+>⚠️ Benutzergruppe Experte notwendig
+- Hauptmenü Softkey (Smartpad Robotersymbol unten rechts) drücken
+- im Menü: Konfiguration → Benutzergruppe → Experte → Pw: kuka
+
+### 5. Einfügen und Anpassen der Konfigurationsdateien (meta.xml, motion.xml) in das WorkVisual Projekt
 
 
-- 📄 [meta.xml](KRL/meta.xml)  
+- 📄 [meta.xml](KRL/meta_eki.xml)  
 - 📄 [motion_eki.xml](KRL/motion_eki.xml)
 
 <p align="center">
@@ -41,11 +43,9 @@ Das Projekt enthält:
 </p>
 
 
-In der EKI-Konfiguration(`<CONFIGURATION> </CONFIGURATION>`) müssen folgende Parameter in überprüft und ggf. angepasst werden:
+In der EKI-Konfiguration(`<CONFIGURATION> </CONFIGURATION>`) müssen folgende Parameter jeweils für die Motion-Kommunikation und die Meta-Kommunikation überprüft und ggf. angepasst werden:
 - **IP-Adresse des externen Rechners (Python-PC)**
-- **Ports für:**
-  - Motion-Kommunikation
-  - Meta-Kommunikation
+- **Portnummer**
 
 <p align="center">
   <img src="Abbildungen/XML_config.JPG" width="700">
@@ -53,40 +53,26 @@ In der EKI-Konfiguration(`<CONFIGURATION> </CONFIGURATION>`) müssen folgende Pa
 
 > ⚠️ Diese Werte müssen exakt mit den Einstellungen im Python-Projekt übereinstimmen.
 
+### 5. Einfügen und Anpassen weiterer Dateien in das WorkVisual Projekt
+Es müssen folgende Dateien in das abgebildete Verzeichnis kopiert werden.
+- 📄 [global_eki.dat](KRL/global_eki.dat)  
+- 📄 [meta_eki.dat](KRL/meta_eki.dat)  
+- 📄 [meta_eki.sub](KRL/meta_eki.sub)  
+- 📄 [motion_eki.dat](KRL/motion_eki.dat)  
+- 📄 [motion_eki.src](KRL/motion_eki.src)  
+
+<p align="center">
+  <img src="Abbildungen/Programm_Pfad.JPG" width="300">
+</p>
+
+Zusätzlich muss in der Datei `custom.dat` der Eintrag `/R1/SPS()` durch `/R1/Meta_EKI()` ersetzt werden.
+
+<p align="center">
+  <img src="Abbildungen/multisub.JPG" width="90%">
+</p>
 
 
->⚠⚠
 
-
-### 4. Programme auf dem KRC
-Für den Betrieb werden typischerweise folgende Programme verwendet:
-- **Roboterprogramm (Motion)**
-  → verarbeitet Bewegungsbefehle
-
-- **Submit Interpreter (Meta / Hintergrundprogramm)**
-  → verarbeitet Steuerbefehle (z. B. Override, Stop)
-
-> ⚠️ Beide Programme müssen korrekt konfiguriert und gestartet sein.
-
-### 5. System starten
-1. Roboter und Controller einschalten
-2. KUKA-System vollständig hochfahren lassen
-3. Roboterprogramm auswählen und starten
-4. Submit Interpreter starten (falls erforderlich)
-
-### 6. Schnittstellen prüfen
-Stelle sicher, dass:
-- EKI-Schnittstelle aktiv ist
-- Beide Kommunikationskanäle verfügbar sind:
-  - Motion
-  - Meta
-
-### 7. Soll-Zustand
-Das System ist korrekt eingerichtet, wenn:
-- Keine Fehlermeldungen auf dem KUKA-Controller auftreten
-- EKI-Verbindungen aktiv sind
-- Der Python-Client sich erfolgreich verbinden kann
-- Bewegungsbefehle korrekt ausgeführt werden
 
 ---
 
