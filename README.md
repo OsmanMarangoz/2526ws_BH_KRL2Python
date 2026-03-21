@@ -13,32 +13,50 @@
 
 ## Einrichtung – KUKA Robot Controller (KRC)
 In diesem Abschnitt wird die Installation und Konfiguration des Projekts auf der KUKA-Steuerung beschrieben.
+Teile der Beschreibung des Vorgehens wurden aus folgendem Repo adaptiert bzw. modifiziert: https://github.com/b-robotized-forks/kuka_experimental/blob/motion_primitive_kuka_driver/kuka_eki_motion_primitives_hw_interface/krl/README.md
 
-### 1. Projekt auf den Controller übertragen
 
-Das KUKA-Projekt muss zunächst auf den Controller geladen werden.
-Möglichkeiten:
-- Über **WorkVisual**
-- Oder per **USB-Stick**
 
+<<<<<<< HEAD
 
 Das Projekt enthält:
 - EKI-Konfiguration (XML-Dateien)
 - KRL-Programme für Motion- und Meta-Kommunikation
+=======
+>>>>>>> 2ae5199 (Update Readme)
 
-### 2. EKI-Konfiguration anpassen
-In der EKI-Konfiguration müssen folgende Parameter überprüft und ggf. angepasst werden:
+### 1. Kuka Steuerung hochfahren
+### 2. PC hochfahren und mit RZ-Benutzer anmelden
+### 3. KRL Dateien aus dem Repo herunterladen 
+### 4. Neues Workvisual Projekt am Smartpad erstellen
+>⚠ Benutzergruppe Expert
+### 5. Einfügen und Anpassen der Konfigurationsdateien (meta.xml, motion.xml) in WorkVisual Projekt
+
+
+- 📄 [meta.xml](KRL/meta.xml)  
+- 📄 [motion_eki.xml](KRL/motion_eki.xml)
+
+<p align="center">
+  <img src="Abbildungen/XML_Pfad.JPG" width="300">
+</p>
+
+
+In der EKI-Konfiguration(`<CONFIGURATION> </CONFIGURATION>`) müssen folgende Parameter in überprüft und ggf. angepasst werden:
 - **IP-Adresse des externen Rechners (Python-PC)**
 - **Ports für:**
   - Motion-Kommunikation
   - Meta-Kommunikation
 
+<p align="center">
+  <img src="Abbildungen/XML_config.JPG" width="700">
+</p>
+
 > ⚠️ Diese Werte müssen exakt mit den Einstellungen im Python-Projekt übereinstimmen.
 
-### 3. Benutzergruppe einstellen
 
-Für die Ausführung der Programme wird mindestens folgende Benutzergruppe benötigt:
-- **Expert**
+
+>⚠⚠
+
 
 ### 4. Programme auf dem KRC
 Für den Betrieb werden typischerweise folgende Programme verwendet:
@@ -79,6 +97,7 @@ Das System ist korrekt eingerichtet, wenn:
 - GUI/OpenGL-Unterstützung (für PyBullet)
 
 ---
+
 
 ## Einrichtung – Python Umgebung
 
