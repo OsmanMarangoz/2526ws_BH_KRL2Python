@@ -5,7 +5,9 @@ import time
 import pybullet as p
 import pybullet_data
 import math
+import threading
 from pathlib import Path
+
 
 class MotionController:
     def __init__(self, motionTransport):
@@ -18,6 +20,8 @@ class MotionController:
         self.default_blending = 0.0
         self.default_base = 0
         self.default_tool = 15
+
+        self.data_lock = threading.Lock()
 
         p.connect(p.GUI)
         p.setGravity(0,0,-9.81)
@@ -79,11 +83,12 @@ class MotionController:
     def get_current_Point6D(self, name: str) -> Point6D:
 
         try:
-            xml_bytes: bytes = self.lastMotionPacket
-            # print("RAW XML BYTES:", xml_bytes)
+            with self.data_lock:
+                xml_bytes: bytes = self.lastMotionPacket
+                # print("RAW XML BYTES:", xml_bytes)
 
-            end_idx = xml_bytes.find(b"</RobotState>") + len(b"</RobotState>")
-            xml_bytes = xml_bytes[:end_idx]
+                end_idx = xml_bytes.find(b"</RobotState>") + len(b"</RobotState>")
+                xml_bytes = xml_bytes[:end_idx]
 
             root = ET.fromstring(xml_bytes.decode())
 
@@ -153,10 +158,11 @@ class MotionController:
                     print("Motion connection lost")
                     break
 
-                self.lastMotionPacket = data
-                self._update_command_state()
+                with self.data_lock:
+                    self.lastMotionPacket = data
+                    self._update_command_state()
+                    joint_angles_deg = self.get_current_joint_state()
 
-                joint_angles_deg = self.get_current_joint_state()
                 if joint_angles_deg is None:
                     continue
 

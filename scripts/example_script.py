@@ -67,7 +67,11 @@ if __name__ == "__main__":
             vel=0.15
         )
 
-        while kuka.cmd_counter > kuka.last_finished_id + 1:
+        while True:
+            with kuka.data_lock:
+                if kuka.cmd_counter <= kuka.last_finished_id + 1:
+                    print("cmd_counter:", kuka.cmd_counter, "last_finished_id:", kuka.last_finished_id)
+                    break
             sleep(0.5)
 
         kuka.disconnect()
