@@ -1,9 +1,9 @@
 &ACCESS RVP
-&REL 64
+&REL 69
 defdat motion_eki
    ext bas(bas_command :in, real :in)
    struc move_type int mode, base_index, tool_index, wait_for_gripper, teached, real velocity, acceleration, blending, axis joint, frame cartesian, frame cartesian_aux
-   struc command_type int id, step, type, move_type move_data, int grip_direction_mode
+   struc command_type int id, step, type, move_type move_data, int grip_direction_mode, int suction_mode, int temp_out
    decl command_type current_command
    decl axis teached_points[10]
    

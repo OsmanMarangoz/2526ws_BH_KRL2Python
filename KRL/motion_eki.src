@@ -1,10 +1,10 @@
 &ACCESS RVP
-&REL 64
+&REL 69
 def motion_eki()
    ; Software License Agreement (BSD License)
    ;
    ; Copyright (c) 2018, 3M
-   ; Modifications copyright (c) 2021 Gergely Sóti
+   ; Modifications copyright (c) 2021 Gergely SÃ³ti
    ; All rights reserved.
    ;
    ; Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ def motion_eki()
    ; POSSIBILITY OF SUCH DAMAGE.
 
    ; This software is derived work of Brett Hemes (3M) <brhemes@mmm.com>
-   ; Adaptation by Gergely Sóti, H-KA iRAS Prof. Hein, 2021; gergely.soti@h-ka.de
+   ; Adaptation by Gergely SÃ³ti, H-KA iRAS Prof. Hein, 2021; gergely.soti@h-ka.de
    ;
    ; Modifications: Moritz Weisenboehler (H-KA) <moritz.weisenboehler@h-ka.de>
    ; Modifications: Mathias Fuhrer <mathias.fuhrer@b-robotized.de>
@@ -44,19 +44,19 @@ def motion_eki()
    ; Initialization
    bas(#initmov, 0)
    
-   init_interface()
    current_command = null_command()
    CURRENT_COMMAND_ID = 0
    LAST_FINISHED_MOVE_ID = 0
    ROBOT_STOPPED = false   ; global variable
    softkey_set_ovpro = $OV_PRO
-   last_meta_override = META_VELOCITY_OVERRIDE
-   ;META_VELOCITY_OVERRIDE = 0 
    act_joint_vel = 1.0   ; 100%
    act_joint_acc = 1.0   ; 100%
    act_cart_vel = 0 ; modify default value if needed
    act_cart_acc = 0 ; modify default value if needed
-
+   last_meta_override = META_VELOCITY_OVERRIDE
+   
+   init_interface()
+   
    index = 0
    
    for index = 1 to 10
@@ -84,8 +84,9 @@ def motion_eki()
    ControlWord = 0
    DeviceMode = 10 
 
-   interrupt decl 19 when $flag[3] == true do stop_movement()  ;local interrupt to use RESUME
- 
+ interrupt decl 19 when $FLAG[3] == true do stop_movement()  ;local interrupt to use RESUME
+   interrupt on 19
+   
    ; Communication process
    loop
       
@@ -94,12 +95,16 @@ def motion_eki()
               
          switch current_command.type
             case 1
-               check_error(do_grip(current_command.grip_direction_mode))
+               check_error(do_grip(current_command.grip_direction_mode, current_command.id))
                check_error(do_move(current_command.step, current_command.move_data, current_command.id))
             case 2
                check_error(do_move(current_command.step, current_command.move_data, current_command.id))
             case 3
-               check_error(do_grip(current_command.grip_direction_mode))
+               check_error(do_grip(current_command.grip_direction_mode, current_command.id))
+            case 4
+               check_error(do_suction(current_command.suction_mode, current_command.id))
+            case 5
+               check_error(set_out(current_command.temp_out, current_command.id))    
          endswitch
       else
          CURRENT_COMMAND_ID = 0
@@ -124,7 +129,7 @@ deffct command_type null_command()
    move_data.cartesian_aux = cartesian_aux
 
    
-   command = { id 0, step 0, type 0, grip_direction_mode 0}
+   command = { id 0, step 0, type 0, grip_direction_mode 1, suction_mode 0, temp_out 0}
    command.move_data = move_data
    return command
 endfct
@@ -135,7 +140,7 @@ def init_interface()
    msgnotify("Init motion interface", "Motion EKI")
    
    ; NOTE: for testing/ implementiong krl files its more convenient to use close_interface() instead of reset_interface()
-   global interrupt decl 15 when $flag[1] == false do close_interface()
+   global interrupt decl 15 when $flag[1] == false do reset_interface()
    interrupt on 15
    
    global interrupt decl 16 when $timer_flag[1] == true do send_status()
@@ -345,7 +350,7 @@ deffct bool get_command(command :out)
    
       case 3
          status = eki_getint("MOTION_EKI", "RobotCommand/Grip/Jaw/@DirectionMode", command.grip_direction_mode)
-         
+         status = eki_getint("MOTION_EKI", "RobotCommand/Grip/Vacuum/@Suction", command.suction_mode)
    endswitch
    return true
 endfct
@@ -364,14 +369,14 @@ deffct int do_move(step :in, move_data :in, cmd_id :in)
    msgnotify("BaseIndex = %1", "Motion EKI", move_data.base_index)
    if move_data.base_index > 0 then
       $base = base_data[move_data.base_index]
-      MsgNotify("BASE X=%1", "Motion EKI", $BASE.X)
+      ;MsgNotify("BASE X=%1", "Motion EKI", $BASE.X)
    else 
       $base = $nullframe
    endif
 
    if move_data.tool_index > 0 then
       $tool = tool_data[move_data.tool_index]
-      MsgNotify("TOOL X=%1", "Motion EKI", $TOOL.X)
+      ;MsgNotify("TOOL X=%1", "Motion EKI", $TOOL.X)
    else 
       $tool = $nullframe
    endif
@@ -420,19 +425,57 @@ deffct int do_move(step :in, move_data :in, cmd_id :in)
    return error_code
 endfct
 
-deffct int do_grip(grip_direction_mode :in)
+
+deffct int set_out(temp_out:in, out_state:in, cmd_id :in)
+   decl int temp_out
+   decl int out_state
+   decl int cmd_id
+   
+   set_cmd_id_done(cmd_id)
+   
+   switch(out_state)
+      case 0
+         $OUT[temp_out] = FALSE
+      case 1 
+         $OUT[temp_out] = TRUE
+   ENDSWITCH
+ return 1
+
+endfct
+
+deffct int do_grip(grip_direction_mode :in, cmd_id :in)
    decl int grip_direction_mode 
+   decl int cmd_id
+   ;temp_cmd_id = cmd_id
+   set_cmd_id_done(cmd_id)
    
    switch(grip_direction_mode)
       case 0
        $OUT[7] = TRUE ;Kollege oeffnen
-       $OUT[8] = FALSE ;Kollege schlie�en
+       $OUT[8] = FALSE ;Kollege schließen
        
      case 1
        $OUT[7] = FALSE ;Kollege oeffnen
-       $OUT[8] = TRUE ;Kollege schlie�en
+       $OUT[8] = TRUE ;Kollege schließen
    ENDSWITCH
+ return 1
+
+endfct
+
+deffct int do_suction(suction_mode :in, cmd_id :in)
+   decl int suction_mode 
+   decl int cmd_id
+
+   set_cmd_id_done(cmd_id)
    
+   switch(suction_mode)
+      case 0
+       $OUT[5] = TRUE 
+       $OUT[6] = FALSE 
+     case 1
+       $OUT[5] = FALSE 
+       $OUT[6] = TRUE 
+   ENDSWITCH
  return 1
 
 endfct
@@ -460,10 +503,11 @@ def stop_movement()
    endif
    
    ; Reset current command to ensure a clean restart
-    current_command = null_command()
+   current_command = null_command()
     
    ROBOT_STOPPED = true
     
+   $FLAG[3] = false;
    ; wait one cycle
    WAIT sec 0.012
    

@@ -31,10 +31,26 @@ class MotionController:
         pybullet_data_path = pybullet_data.getDataPath()
         p.setAdditionalSearchPath(pybullet_data_path)
 
+        # CELL (STL VISUAL)
+        table_stl = str(project_root / "kuka_kr3_support" / "meshes" / "kr3r540" / "visual"  /"whole_cell_binary.stl")
+
+        visual_shape = p.createVisualShape(
+            shapeType=p.GEOM_MESH,
+            fileName=table_stl,
+            meshScale=[1, 1, 1]  
+        )
+
+        p.createMultiBody(
+            baseMass=0,
+            baseVisualShapeIndex=visual_shape,
+            basePosition=[0, 0, 0]
+        )
+
+
         # Load our robot URDF: needs project root so package://kuka_kr3_support/... meshes resolve
         p.setAdditionalSearchPath(str(project_root))
         urdf_path = str(project_root / "kuka_kr3_support" / "urdf" / "kr3r540.urdf")
-        self.robotURDF = p.loadURDF(urdf_path, useFixedBase=True)
+        self.robotURDF = p.loadURDF(urdf_path,basePosition=[-0.2, -0.05, 0.9],useFixedBase=True)
 
         # Restore default additional search path
         p.setAdditionalSearchPath(pybullet_data_path)

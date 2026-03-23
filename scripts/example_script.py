@@ -41,7 +41,8 @@ if __name__ == "__main__":
         p3 = load_point_csv(str(database_dir / "points.csv"), "xp3") #pick pose
 
         kuka.ptp(p1)
-
+        kuka.set_out(1, True)
+        kuka.set_out(2, True)
         kuka.jaw_open()
 
         kuka.lin(p2)
