@@ -12,8 +12,10 @@
 
 - **Submit Interpreter (Meta / Hintergrundprogramm)**
   → verarbeitet Steuerbefehle (z. B. Override, Stop)
+<p align="left">
+  <img src="Abbildungen/kommunikation_wh.jpg" width="600">
+</p>
 
-- geile Grafik -> Marcel
 
 ---
 
