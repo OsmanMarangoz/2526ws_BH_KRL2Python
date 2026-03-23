@@ -71,8 +71,7 @@ Zusätzlich muss in der Datei `custom.dat` der Eintrag `/R1/SPS()` durch `/R1/Me
   <img src="Abbildungen/multisub.JPG" width="100%">
 </p>
 
-
-
+## Einrichtung – Python Umgebung
 
 ---
 
@@ -83,9 +82,6 @@ Zusätzlich muss in der Datei `custom.dat` der Eintrag `/R1/SPS()` durch `/R1/Me
 - GUI/OpenGL-Unterstützung (für PyBullet)
 
 ---
-
-
-## Einrichtung – Python Umgebung
 
 ### 1. Repository klonen
 ```bash
