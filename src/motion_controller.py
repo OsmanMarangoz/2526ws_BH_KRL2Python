@@ -12,7 +12,7 @@ from pathlib import Path
 class MotionController:
     def __init__(self, motionTransport):
         self.motionTransport = motionTransport
-        self.cmd_counter = 0
+        self.cmd_counter = 1
         self.last_finished_id = 0
 
         self.default_velocity = 0.2
@@ -37,7 +37,7 @@ class MotionController:
         visual_shape = p.createVisualShape(
             shapeType=p.GEOM_MESH,
             fileName=table_stl,
-            meshScale=[1, 1, 1]  
+            meshScale=[1, 1, 1]
         )
 
         p.createMultiBody(
@@ -456,4 +456,62 @@ class MotionController:
         self.motionTransport.send(xml)
         print(f"debug:\n{xml.decode()}")
         print(f" Jaw gripper CLOSE command sent (ID: {self.cmd_counter})")
+        self.cmd_counter += 1
+
+    def _build_suction_xml(
+        self,
+        suction_mode: int = 0,
+    ) -> bytes:
+        """Build XML command for vacuum suction"""
+
+        root = ET.Element("RobotCommand", Id=str(self.cmd_counter), Type="4")
+        grip = ET.SubElement(root, "Suction")
+        vacuum = ET.SubElement(grip, "Vacuum")
+        vacuum.set("Suction", str(suction_mode))
+
+        xml_body = ET.tostring(root, encoding="utf-8", method="xml").decode("utf-8")
+        full_message = f'<?xml version="1.0" encoding="UTF-8"?>\n<EthernetKRL>\n{xml_body}\n</EthernetKRL>\n'
+        return full_message.encode("utf-8")
+
+    def suction_on(self) -> None:
+        """Turn on the vacuum suction."""
+        xml = self._build_suction_xml(suction_mode=1)
+        self.motionTransport.send(xml)
+        print(f"debug:\n{xml.decode()}")
+        print(f" Vacuum SUCTION ON command sent (ID: {self.cmd_counter})")
+        self.cmd_counter += 1
+
+    def suction_off(self) -> None:
+        """Turn off the vacuum suction."""
+        xml = self._build_suction_xml(suction_mode=0)
+        self.motionTransport.send(xml)
+        print(f"debug:\n{xml.decode()}")
+        print(f" Vacuum SUCTION OFF command sent (ID: {self.cmd_counter})")
+        self.cmd_counter += 1
+
+    # ==================== IO METHODS ====================
+
+    def _build_io_xml(
+        self,
+        user_out: int,
+        user_outstate: bool
+    ) -> bytes:
+        """Build XML command for triggering digital IOs"""
+
+        root = ET.Element("RobotCommand", Id=str(self.cmd_counter), Type="5")
+        io = ET.SubElement(root, "IO")
+        io.set("user_out", str(user_out))
+        # Add user_outstate to the root so the KUKA knows whether to set True or False
+        io.set("user_outstate", "1" if user_outstate else "0")
+
+        xml_body = ET.tostring(root, encoding="utf-8", method="xml").decode("utf-8")
+        full_message = f'<?xml version="1.0" encoding="UTF-8"?>\n<EthernetKRL>\n{xml_body}\n</EthernetKRL>\n'
+        return full_message.encode("utf-8")
+
+    def set_user_out(self, user_out: int, user_outstate: bool) -> None:
+        """Set a general user IO output."""
+        xml = self._build_io_xml(user_out=user_out, user_outstate=user_outstate)
+        self.motionTransport.send(xml)
+        print(f"debug:\n{xml.decode()}")
+        print(f" IO User_Out {user_out} set to {user_outstate} sent (ID: {self.cmd_counter})")
         self.cmd_counter += 1

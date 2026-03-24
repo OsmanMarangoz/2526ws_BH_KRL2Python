@@ -33,8 +33,4 @@ if __name__ == "__main__":
         kuka.set_default_base(0)
         kuka.set_default_tool(15)
 
-        while kuka.cmd_counter > kuka.last_finished_id + 1:
-            print(kuka.last_finished_id, kuka.cmd_counter)
-            sleep(0.5)
-
         kuka.disconnect()

@@ -39,34 +39,42 @@ if __name__ == "__main__":
         p1 = load_point_csv(str(database_dir / "points.csv"), "xp1") #pre pose lin
         p2 = load_point_csv(str(database_dir / "points.csv"), "xp2") #linear motion to pick pose muss lin
         p3 = load_point_csv(str(database_dir / "points.csv"), "xp3") #pick pose
+        p4 = load_point_csv(str(database_dir / "sequence_points.csv"), "H5")
+        p5 = load_point_csv(str(database_dir / "points.csv"), "H0")
+        p6 = load_point_csv(str(database_dir / "points.csv"), "H5_1")
 
-        kuka.ptp(p1)
-        kuka.set_out(1, True)
-        kuka.set_out(2, True)
+        kuka.lin(p1)
         kuka.jaw_open()
-
         kuka.lin(p2)
         kuka.lin(p3)
 
         kuka.jaw_close()
-        sleep(0.5)
 
         kuka.lin(p3)
         kuka.lin(p2)
-        kuka.ptp(p1)
+        kuka.lin(p1)
 
         kuka.set_default_tool(15)
-        # -------------------------------------------------
-        # 4) Move Sequence
-        # mehrere Punkte in einer Übertragung
-        # -------------------------------------------------
+        kuka.ptp(p5)
+
         sequence_points = load_all_points_csv(str(database_dir / "sequence_points.csv"))
 
         kuka.move_sequence(
             points=sequence_points,
-            mode=2,                     # ptp
-            vel=0.15
+            mode=3,
+            vel=0.10
         )
+        kuka.lin(p6)
+
+        kuka.set_default_tool(14)
+
+        kuka.lin(p1)
+        kuka.lin(p2)
+        kuka.lin(p3)
+        kuka.jaw_open()
+        kuka.lin(p2)
+        kuka.lin(p1)
+
 
         while True:
             with kuka.data_lock:
