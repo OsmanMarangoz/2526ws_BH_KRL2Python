@@ -1,21 +1,22 @@
 # Tutorial to set up KUKA KR3 for 2526ws_BH_KRL2Python
-> [!NOTE]
-> Dieses Projekt steuert einen KUKA-Roboter aus Python über zwei TCP-Kanäle (Motion + Meta) und visualisiert die Gelenkzustände in PyBullet.
 
 > [!NOTE]
 > Das Repository ist für einen KR3 R540 vorkonfiguriert und kann durch Anpassung von IP-Adressen, Ports und Punktdaten auf andere Setups übertragen werden.
 
-## Topologie / Interaktion KRC / KUKA / Python
-- Beschreibung (kurz)
-- **Roboterprogramm (Motion)**
-  → verarbeitet Bewegungsbefehle
+## Interaktion Python / EKI / KUKA
+Ein externes Programm, geschrieben in der **Programmiersprache Python**, wird verwendet, um Befehle an die **KUKA Robot Control (KRC)** zu senden und Bewegungen des Roboters zu steuern.
+Die Kommunikation zwischen dem Python-Programm und der KRC erfolgt über das **Ethernet KRL Interface (EKI)**. Dabei werden XML-Nachrichten über TCP/IP zwischen dem externen Rechner und der Robotersteuerung ausgetauscht.
 
-- **Submit Interpreter (Meta / Hintergrundprogramm)**
-  → verarbeitet Steuerbefehle (z. B. Override, Stop)
+Das Python-Programm sendet Bewegungs- und Steuerbefehle an die KRC, welche diese über zwei getrennte Interpreter verarbeitet.
+- **Roboterprogramm (Motion Interpreter)**  
+  → verarbeitet eingehende **Bewegungsbefehle** (z. B. PTP oder LIN) und führt diese am Roboter aus.
+
+- **Submit Interpreter (Meta / Hintergrundprogramm)**  
+  → läuft parallel im Hintergrund und verarbeitet **Steuerbefehle** wie z. B. Override oder Stop.
+	
 <p align="left">
   <img src="Abbildungen/kommunikation_wh.jpg" width="600">
 </p>
-
 
 ---
 
