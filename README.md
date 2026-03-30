@@ -231,7 +231,7 @@ Dabei stehen folgende Funktionen zur Verfügung:
 - **Visualisierung**
 	- Darstellung der aktuellen Gelenkzustände des Roboters in PyBullet
 
-<img width="1020" height="1065" alt="PythonMethodenUebersicht drawio" src="https://github.com/user-attachments/assets/0dc64376-e05e-4896-a329-974d39209554" />
+<img width="1021" height="1126" alt="PythonMethodenUebersicht drawio" src="https://github.com/user-attachments/assets/2fdee30f-33f7-4ed9-b74c-ff93b3f96a6b" />
 
 - **Zwei Nutzungsarten**
 	- **Interaktiv** über eine Konsolenoberfläche (CLI)
