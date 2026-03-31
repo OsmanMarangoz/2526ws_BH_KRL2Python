@@ -39,7 +39,7 @@ if __name__ == "__main__":
         p1 = load_point_csv(str(database_dir / "points.csv"), "xp1") #pre pose lin
         p2 = load_point_csv(str(database_dir / "points.csv"), "xp2") #linear motion to pick pose muss lin
         p3 = load_point_csv(str(database_dir / "points.csv"), "xp3") #pick pose
-        p4 = load_point_csv(str(database_dir / "sequence_points.csv"), "H5")
+        p4 = load_point_csv(str(database_dir / "Haus_von_nikolaus_punkte.csv"), "H5")
         p5 = load_point_csv(str(database_dir / "points.csv"), "H0")
         p6 = load_point_csv(str(database_dir / "points.csv"), "H5_1")
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
         kuka.set_default_tool(15)
         kuka.ptp(p5)
 
-        sequence_points = load_all_points_csv(str(database_dir / "sequence_points.csv"))
+        sequence_points = load_all_points_csv(str(database_dir / "Haus_von_nikolaus_punkte.csv"))
 
         kuka.move_sequence(
             points=sequence_points,
@@ -74,13 +74,5 @@ if __name__ == "__main__":
         kuka.jaw_open()
         kuka.lin(p2)
         kuka.lin(p1)
-
-
-        while True:
-            with kuka.data_lock:
-                if kuka.cmd_counter <= kuka.last_finished_id + 1:
-                    print("cmd_counter:", kuka.cmd_counter, "last_finished_id:", kuka.last_finished_id)
-                    break
-            sleep(0.5)
 
         kuka.disconnect()
