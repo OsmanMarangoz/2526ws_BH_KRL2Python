@@ -8,12 +8,12 @@ Ein externes Programm, geschrieben in der **Programmiersprache Python**, wird ve
 Die Kommunikation zwischen dem Python-Programm und der KRC erfolgt über das **Ethernet KRL Interface (EKI)**. Dabei werden XML-Nachrichten über TCP/IP zwischen dem externen Rechner und der Robotersteuerung ausgetauscht.
 
 Das Python-Programm sendet Bewegungs- und Steuerbefehle an die KRC, welche diese über zwei getrennte Interpreter verarbeitet.
-- **Roboterprogramm (Motion Interpreter)**  
+- **Roboterprogramm (Motion Interpreter)**
   → verarbeitet eingehende **Bewegungsbefehle** (z. B. PTP oder LIN) und führt diese am Roboter aus.
 
-- **Submit Interpreter (Meta / Hintergrundprogramm)**  
+- **Submit Interpreter (Meta / Hintergrundprogramm)**
   → läuft parallel im Hintergrund und verarbeitet **Steuerbefehle** wie z. B. Override oder Stop.
-	
+
 <p align="left">
   <img src="Abbildungen/kommunikation_wh.jpg" width="600">
 </p>
@@ -29,7 +29,7 @@ Teile der Beschreibung des Vorgehens wurden aus folgendem Repo adaptiert bzw. mo
 
 ### 1. Kuka Steuerung hochfahren
 ### 2. PC hochfahren und mit RZ-Benutzer anmelden
-### 3. KRL Dateien aus dem Repo herunterladen 
+### 3. KRL Dateien aus dem Repo herunterladen
 ### 4. Neues Workvisual Projekt am Smartpad erstellen
 >⚠️ Benutzergruppe Experte notwendig
 - Hauptmenü Softkey (Smartpad Robotersymbol unten rechts) drücken
@@ -38,7 +38,7 @@ Teile der Beschreibung des Vorgehens wurden aus folgendem Repo adaptiert bzw. mo
 ### 5. Einfügen und Anpassen der Konfigurationsdateien (meta.xml, motion.xml) in das WorkVisual Projekt
 
 
-- 📄 [meta.xml](KRL/meta_eki.xml)  
+- 📄 [meta.xml](KRL/meta_eki.xml)
 - 📄 [motion_eki.xml](KRL/motion_eki.xml)
 
 <p align="left">
@@ -58,11 +58,11 @@ In der EKI-Konfiguration(`<CONFIGURATION> </CONFIGURATION>`) müssen folgende Pa
 
 ### 5. Einfügen und Anpassen weiterer Dateien in das WorkVisual Projekt
 Es müssen folgende Dateien in das abgebildete Verzeichnis kopiert werden.
-- 📄 [global_eki.dat](KRL/global_eki.dat)  
-- 📄 [meta_eki.dat](KRL/meta_eki.dat)  
-- 📄 [meta_eki.sub](KRL/meta_eki.sub)  
-- 📄 [motion_eki.dat](KRL/motion_eki.dat)  
-- 📄 [motion_eki.src](KRL/motion_eki.src)  
+- 📄 [global_eki.dat](KRL/global_eki.dat)
+- 📄 [meta_eki.dat](KRL/meta_eki.dat)
+- 📄 [meta_eki.sub](KRL/meta_eki.sub)
+- 📄 [motion_eki.dat](KRL/motion_eki.dat)
+- 📄 [motion_eki.src](KRL/motion_eki.src)
 
 <p align="left">
   <img src="Abbildungen/Programm_Pfad.JPG" width="300">
@@ -236,7 +236,7 @@ Dabei stehen folgende Funktionen zur Verfügung:
 - **Zwei Nutzungsarten**
 	- **Interaktiv** über eine Konsolenoberfläche (CLI)
 	- **Programmgesteuert über eigene Python-Skripte** mittels der Robot-Klasse
-   
+
 ### Motion-Modi (aus `motion_eki.xml`, `RobotCommand/Move/@Mode`)
 Verfügbare Move-Modi **1–6**:
 
@@ -362,3 +362,7 @@ Warnungen wie `No inertial data for link...` können in diesem Projekt ignoriert
 ### 5) Socket-Timeouts
 
 Kurze Timeouts in Polling-Schleifen sind normal. Dauerhafte Timeouts deuten meist auf ein Netzwerk-/Schnittstellenproblem hin.
+
+### 6) Systemfehler 14
+
+Die KRL hat unerwartete Eingaben erhalten. Bitte überprüfe dein Skript, ob die verwendeten Funktionen korrekt sind. Ein vollständiger Neustart ist erforderlich.
